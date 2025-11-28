@@ -1,15 +1,7 @@
 {
   "version": 2,
   "name": "SQLCoder-Platform",
-  "outputDirectory": "dist",
-  "installCommand": "npm install",
-  "buildCommand": "npm run build",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build"
-    }
-  ],
+  "outputDirectory": "public",
   "functions": {
     "api/server.js": {
       "maxDuration": 30
@@ -22,7 +14,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/dist/$1"
+      "dest": "/public/$1"
     }
   ],
   "env": {
