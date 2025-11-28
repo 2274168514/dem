@@ -1,12 +1,19 @@
 {
   "version": 2,
   "name": "SQLCoder-Platform",
+  "buildCommand": null,
   "outputDirectory": "public",
-  "functions": {
-    "api/server.js": {
-      "maxDuration": 30
+  "installCommand": "npm install",
+  "builds": [
+    {
+      "src": "public/**/*",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "api/server.js",
+      "use": "@vercel/node"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
