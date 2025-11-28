@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLCoder - 可视化编程教育平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 600px;
+        }
+        .logo {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .feature-list {
+            text-align: left;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .feature-list h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .feature-list ul {
+            list-style: none;
+        }
+        .feature-list li {
+            padding: 5px 0;
+            color: #555;
+        }
+        .feature-list li::before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .status {
+            background: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">📝</div>
+        <h1>SQLCoder</h1>
+        <p><strong>可视化编程教育平台</strong></p>
+
+        <div class="status">
+            <strong>🚀 Vercel部署成功！</strong>
+            <br>应用正在运行中...
+        </div>
+
+        <div class="feature-list">
+            <h3>✨ 核心功能</h3>
+            <ul>
+                <li>在线代码编辑器 - 支持HTML/CSS/JavaScript</li>
+                <li>Markdown预览 - 丰富的代码高亮</li>
+                <li>实时预览 - 即时查看代码效果</li>
+                <li>多媒体支持 - 图片、视频、文档</li>
+                <li>交互式代码演示 - javascript-viz</li>
+            </ul>
+        </div>
+
+        <div class="feature-list">
+            <h3>🎨 支持的代码高亮</h3>
+            <ul>
+                <li>JavaScript / TypeScript</li>
+                <li>HTML / CSS</li>
+                <li>Python</li>
+                <li>Java</li>
+                <li>SQL</li>
+                <li>JSON</li>
+                <li>以及更多...</li>
+            </ul>
+        </div>
+
+        <p style="margin-top: 30px; font-size: 0.9em; color: #999;">
+            完整版本正在上传中，包含所有功能模块
+        </p>
+    </div>
+
+    <script>
+        // 简单的健康检查
+        fetch('/api/health')
+            。then(response => response.json())
+            。then(data => {
+                console.log('API Status:', data);
+                document.querySelector('.status').innerHTML =
+                    '<strong>✅ API连接正常</strong><br>后端服务运行正常';
+            })
+            。catch(error => {
+                console.log('API未连接，使用静态模式');
+                document.querySelector('.status').innerHTML =
+                    '<strong>📝 静态模式</strong><br>API服务正在启动中...';
+            });
+    </script>
+</body>
+</html>
