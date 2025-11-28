@@ -5,11 +5,11 @@
   "main": "api/server.js",
   "scripts": {
     "start": "node api_server.js",
-    "vercel-build": "echo 'No build process needed - static frontend project'",
+    "vercel-build": "cp -r public dist && echo 'Build completed'",
     "start:frontend": "http-server -p 5020 -c-1 -o",
     "dev": "node api_server.js",
     "dev:frontend": "http-server -p 5020 -c-1 -o",
-    "build": "echo 'No build process needed - this is a static frontend project'",
+    "build": "mkdir -p dist && cp -r public/* dist/ && echo 'Static build completed - dist directory ready'",
     "serve": "python -m http.server 5020 --bind 0.0.0.0",
     "serve:8000": "python -m http.server 8000 --bind 0.0.0.0",
     "serve:3000": "python -m http.server 3000 --bind 0.0.0.0",

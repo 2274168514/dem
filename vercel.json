@@ -1,7 +1,7 @@
 {
   "version": 2,
   "name": "SQLCoder-Platform",
-  "outputDirectory": "public",
+  "outputDirectory": "dist",
   "installCommand": "npm install",
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
