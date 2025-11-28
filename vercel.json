@@ -1,8 +1,6 @@
 {
   "version": 2,
   "name": "SQLCoder-Platform",
-  "buildCommand": "npm run vercel-build",
-  "outputDirectory": ".",
   "builds": [
     {
       "src": "api/server.js",
@@ -15,44 +13,8 @@
       "dest": "/api/server.js"
     },
     {
-      "src": "/css/(.*)",
-      "dest": "/css/$1"
-    },
-    {
-      "src": "/js/(.*)",
-      "dest": "/js/$1"
-    },
-    {
-      "src": "/lib/(.*)",
-      "dest": "/lib/$1"
-    },
-    {
-      "src": "/image/(.*)",
-      "dest": "/image/$1"
-    },
-    {
-      "src": "/uploads/(.*)",
-      "dest": "/uploads/$1"
-    },
-    {
-      "src": "/demos/(.*)",
-      "dest": "/demos/$1"
-    },
-    {
-      "src": "/code-examples/(.*)",
-      "dest": "/code-examples/$1"
-    },
-    {
-      "src": "/ppt-viewer/(.*)",
-      "dest": "/ppt-viewer/$1"
-    },
-    {
-      "src": "/node_modules/(.*)",
-      "dest": "/node_modules/$1"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/main.html"
+      "dest": "/index.html"
     }
   ],
   "functions": {
