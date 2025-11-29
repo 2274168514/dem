@@ -1,0 +1,26 @@
+services:
+  # 主应用服务
+  - type: web
+    name: sqlcoder-platform
+    env: node
+    plan: free
+    buildCommand: "npm install"
+    startCommand: "node api_server.js"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+    healthCheckPath: /api/health
+
+  # 数据库服务（可选）
+  - type: pserv
+    name: mysql-database
+    plan: free
+    env: docker
+    dockerfilePath: ./Dockerfile.mysql
+    healthCheckPath: /
+
+databases:
+  - name: programming_platform
+    plan: free
