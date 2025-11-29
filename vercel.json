@@ -1,6 +1,21 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "api_server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api_server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
   "cleanUrls": true,
-  "trailingSlash": false,
-  "public": true
+  "trailingSlash": false
 }

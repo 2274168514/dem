@@ -2,7 +2,7 @@
   "name": "sqlcoder-platform",
   "version": "1.0.0",
   "description": "在线编程评测平台 - OnlineJudge Platform",
-  "main": "api/server.js",
+  "main": "api_server.js",
   "scripts": {
     "start": "node api_server.js",
     "start:frontend": "http-server -p 5020 -c-1 -o",
