@@ -130,6 +130,11 @@ export class UserAuth {
       const result = await response.json();
       console.log('📨 [userAuth] API响应内容:', result);
 
+      // 如果注册成功，创建通知
+      if (result.success && result.user) {
+        this.createUserRegistrationNotification(result.user);
+      }
+
       return result;
 
     } catch (error) {
@@ -439,6 +444,53 @@ export class UserAuth {
     }
 
     return { isValid: true, message: '密码强度合格' };
+  }
+
+  /**
+   * 创建用户注册通知
+   */
+  async createUserRegistrationNotification(newUser) {
+    try {
+      // 获取通知管理器实例
+      const notificationManager = window.notificationManager;
+      if (!notificationManager) {
+        console.log('🔔 通知管理器未找到，跳过通知创建');
+        return;
+      }
+
+      // 查找管理员用户
+      const adminResponse = await fetch(`${API_BASE}/users/query`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sql: 'SELECT id, username, email, full_name, role FROM users WHERE role = ?',
+          params: ['admin']
+        })
+      });
+
+      if (adminResponse.ok) {
+        const adminResult = await adminResponse.json();
+        const admins = adminResult.data || [];
+
+        // 为每个管理员创建通知
+        for (const admin of admins) {
+          await notificationManager.createNotification('user_registration', admin.id, {
+            username: newUser.username,
+            full_name: newUser.fullName,
+            role: newUser.role,
+            senderId: this.currentUser?.id,
+            relatedType: 'user',
+            relatedId: newUser.id
+          });
+        }
+
+        console.log(`✅ 已为 ${admins.length} 个管理员创建用户注册通知`);
+      }
+    } catch (error) {
+      console.error('❌ 创建用户注册通知失败:', error);
+    }
   }
 }
 

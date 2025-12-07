@@ -87,6 +87,8 @@ export const translations: Translations = {
     'ppt.config': '配置 Supabase',
     'ppt.fullscreen': '全屏',
     'ppt.exit_fullscreen': '退出全屏',
+    'ppt.upload_prompt': '点击"上传到云端"按钮，即可使用 Microsoft Office Online 在线预览',
+    'ppt.upload_tip': '提示：上传后文件将存储在云端，微软服务器可以访问并预览',
   },
   en: {
     // App title and navigation
@@ -165,6 +167,8 @@ export const translations: Translations = {
     'ppt.config': 'Configure Supabase',
     'ppt.fullscreen': 'Fullscreen',
     'ppt.exit_fullscreen': 'Exit Fullscreen',
+    'ppt.upload_prompt': 'Click "Upload to Cloud" to preview with Microsoft Office Online',
+    'ppt.upload_tip': 'Tip: Files will be stored in the cloud for Microsoft servers to access',
   }
 };
 

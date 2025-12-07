@@ -11,7 +11,13 @@ class LanguageManager {
             || localStorage.getItem('preferred-language') 
             || 'zh';
         this.translations = this.loadTranslations();
-        this.init();
+        
+        // 确保DOM准备好后再初始化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.init());
+        } else {
+            this.init();
+        }
     }
 
     loadTranslations() {
@@ -97,7 +103,13 @@ class LanguageManager {
                 'success-saved': '文件已保存',
                 'success-deleted': '文件已删除',
                 'success-created': '文件已创建',
-                'success-renamed': '文件已重命名'
+                'success-renamed': '文件已重命名',
+
+                // 搜索和筛选
+                'searchPlaceholder': '搜索学生姓名或学号...',
+                'allStatuses': '所有状态',
+                'studentActive': '已提交',
+                'studentInactive': '未提交'
             },
             en: {
                 // Editor Interface
@@ -180,20 +192,46 @@ class LanguageManager {
                 'success-saved': 'File saved',
                 'success-deleted': 'File deleted',
                 'success-created': 'File created',
-                'success-renamed': 'File renamed'
+                'success-renamed': 'File Renamed',
+
+                // Search and Filter
+                'searchPlaceholder': 'Search student name or ID...',
+                'allStatuses': 'All Statuses',
+                'studentActive': 'Submitted',
+                'studentInactive': 'Not Submitted'
             }
         };
     }
 
     init() {
+        console.log('🌐 LanguageManager 初始化...');
         this.setupEventListeners();
         this.updateLanguage();
     }
 
     setupEventListeners() {
         const langToggleBtn = document.getElementById('lang-toggle-btn');
+        console.log('🔍 查找语言切换按钮:', langToggleBtn ? '找到' : '未找到');
+        
         if (langToggleBtn) {
-            langToggleBtn.addEventListener('click', () => this.toggleLanguage());
+            // 直接绑定事件，使用箭头函数保持this上下文
+            const handleClick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('👉 语言按钮被点击');
+                this.toggleLanguage();
+            };
+            
+            // 移除旧的事件监听器（如果有）
+            langToggleBtn.removeEventListener('click', langToggleBtn._langClickHandler);
+            langToggleBtn._langClickHandler = handleClick;
+            langToggleBtn.addEventListener('click', handleClick);
+            
+            console.log('✅ 语言切换按钮事件已绑定');
+        } else {
+            // 如果没找到，延迟重试
+            console.log('⚠️ 语言按钮未找到，500ms后重试...');
+            setTimeout(() => this.setupEventListeners(), 500);
         }
         
         // 监听全局语言变化事件（跨页面同步）

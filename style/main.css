@@ -80,6 +80,77 @@ button:disabled {
   font-size: 13px;
 }
 
+/* 文件树容器 - 填充剩余空间 */
+.file-tree {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+/* 隐藏 Webkit 浏览器滚动条 */
+.file-tree::-webkit-scrollbar {
+  display: none;
+}
+
+/* 侧边栏底部返回按钮容器 */
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+/* 侧边栏返回按钮样式 */
+.sidebar-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebar-back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+.sidebar-back-btn svg {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.sidebar-back-btn span {
+  line-height: 1rem;
+  vertical-align: middle;
+}
+
+/* 浅色模式下的侧边栏返回按钮 */
+.light-theme .sidebar-back-btn,
+html[data-theme="light"] .sidebar-back-btn {
+  border-color: #d1d5db;
+  color: #6b7280;
+}
+
+.light-theme .sidebar-back-btn:hover,
+html[data-theme="light"] .sidebar-back-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #374151;
+  border-color: #9ca3af;
+}
+
 .sidebar-header {
   font-weight: 600;
   color: var(--text);

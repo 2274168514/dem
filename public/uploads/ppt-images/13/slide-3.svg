@@ -1,0 +1,19 @@
+
+        <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <rect width="800" height="600" fill="url(#bg)"/>
+            <rect x="50" y="100" width="700" height="400" fill="white" rx="10"/>
+            <text x="400" y="150" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="#2C3E50">小组研讨1-第一组.pptx</text>
+            <text x="400" y="500" font-family="Arial, sans-serif" font-size="20" text-anchor="middle" fill="#7F8C8D">第 3 页 / 共 5 页</text>
+            <text x="100" y="220" font-family="Arial, sans-serif" font-size="24" fill="#34495E">• 这是PPT的第 3 页内容</text>
+            <text x="100" y="260" font-family="Arial, sans-serif" font-size="24" fill="#34495E">• 演示文稿预览功能</text>
+            <text x="100" y="300" font-family="Arial, sans-serif" font-size="24" fill="#34495E">• 支持图片格式预览</text>
+            <text x="100" y="340" font-family="Arial, sans-serif" font-size="24" fill="#34495E">• 自动生成幻灯片缩略图</text>
+            <circle cx="700" cy="150" r="30" fill="#E74C3C"/>
+            <rect x="600" y="180" width="80" height="20" fill="#F39C12"/>
+        </svg>

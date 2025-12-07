@@ -59,24 +59,23 @@ function initializeApp() {
     const mode = urlParams.get('mode') || (studentId ? 'review' : 'edit');
 
     // 强制清理所有作业相关的数据（用于调试代码库案例）
-    console.log('🧹 清理作业相关数据...');
-    localStorage.removeItem('current-assignment-context');
-    localStorage.removeItem('assignment-data');
-    localStorage.removeItem('assignment-submission');
-    sessionStorage.clear();
+    // console.log('🧹 清理作业相关数据...');
+    // localStorage.removeItem('current-assignment-context');
+    // localStorage.removeItem('assignment-data');
+    // localStorage.removeItem('assignment-submission');
+    // sessionStorage.clear();
 
-    // 临时禁用作业模式以确保代码库案例能正常工作
-    console.log('🎯 强制进入正常模式，跳过作业检测...');
-    // if (assignmentId || assignmentContext) {
-    //   console.log('📝 检测到作业上下文，初始化作业模式...');
-    //   console.log('🔍 assignmentId:', assignmentId);
-    //   console.log('🔍 studentId:', studentId);
-    //   console.log('🔍 assignmentContext:', assignmentContext);
-    //   console.log('🔍 mode:', mode);
-    //   initializeAssignmentMode(assignmentId, assignmentContext, { studentId, mode });
-    // } else {
-    //   console.log('🎯 正常模式，继续标准初始化...');
-    // }
+    // 恢复作业模式检测
+    if (assignmentId || assignmentContext) {
+      console.log('📝 检测到作业上下文，初始化作业模式...');
+      console.log('🔍 assignmentId:', assignmentId);
+      console.log('🔍 studentId:', studentId);
+      console.log('🔍 assignmentContext:', assignmentContext);
+      console.log('🔍 mode:', mode);
+      initializeAssignmentMode(assignmentId, assignmentContext, { studentId, mode });
+    } else {
+      console.log('🎯 正常模式，继续标准初始化...');
+    }
 
     // 检查必要的全局对象
     if (typeof window === 'undefined') {
@@ -692,7 +691,7 @@ document.addEventListener('DOMContentLoaded', function() {
 /**
  * 加载已有提交内容（学生二次进入或教师审阅）
  */
-function loadExistingSubmission(assignment, options = {}) {
+async function loadExistingSubmission(assignment, options = {}) {
   if (!fileManager) {
     return;
   }
@@ -719,15 +718,91 @@ function loadExistingSubmission(assignment, options = {}) {
   const localSubmissions = JSON.parse(localStorage.getItem('oj-assignment-submissions') || '[]');
   const assignmentSubmissions = localSubmissions.filter(s => s.assignmentId === assignment.id);
 
-  // 合并本地和作业的提交数据
-  let allSubmissions = assignment.submissions || [];
-  assignmentSubmissions.forEach(localSubmission => {
-    const existingIndex = allSubmissions.findIndex(s => s.studentId === localSubmission.studentId);
+  // 尝试从API加载提交数据
+  let apiSubmissions = [];
+  try {
+    const response = await fetch(`http://127.0.0.1:5024/api/assignments/${assignment.id}/submissions`);
+    if (response.ok) {
+      const result = await response.json();
+      if (result.success && result.data && result.data.submissions) {
+        apiSubmissions = result.data.submissions.map(s => {
+            // 解析文件内容
+            let files = [];
+            try {
+                const parsed = JSON.parse(s.submission_files || '[]');
+                if (Array.isArray(parsed)) {
+                    files = parsed;
+                } else if (typeof parsed === 'object') {
+                    // 兼容对象格式 { 'filename': 'content' }
+                    files = Object.entries(parsed).map(([name, content]) => ({ 
+                        name, 
+                        content, 
+                        type: name.endsWith('.html') ? 'html' : name.endsWith('.css') ? 'css' : 'javascript' 
+                    }));
+                }
+            } catch (e) {
+                console.warn('解析提交文件失败:', e);
+                files = [];
+            }
+
+            return {
+                id: s.id,
+                assignmentId: String(s.assignment_id),
+                studentId: String(s.student_id), // 确保ID格式一致
+                files: files,
+                submittedAt: s.submission_time
+            };
+        });
+        console.log(`📥 从API加载了 ${apiSubmissions.length} 条提交记录`);
+      }
+    }
+  } catch (e) {
+    console.error('从API获取提交记录失败:', e);
+  }
+
+  // 合并本地、作业上下文和API的提交数据
+  let allSubmissions = [];
+  if (assignment.submissions && Array.isArray(assignment.submissions)) {
+    allSubmissions = [...assignment.submissions];
+  }
+  
+  // 合并本地提交
+  assignmentSubmissions.forEach(sub => {
+    if (!sub || !sub.studentId) return;
+    const existingIndex = allSubmissions.findIndex(s => s && String(s.studentId) === String(sub.studentId));
     if (existingIndex === -1) {
-      allSubmissions.push(localSubmission);
+      allSubmissions.push(sub);
     } else {
-      // 保留最新的提交
-      allSubmissions[existingIndex] = localSubmission;
+      const existing = allSubmissions[existingIndex];
+      // 简单的比较：假设本地的总是更新的（或者应该比较时间）
+      if (existing && sub.submittedAt && existing.submittedAt) {
+        if (new Date(sub.submittedAt) > new Date(existing.submittedAt)) {
+            allSubmissions[existingIndex] = sub;
+        }
+      } else {
+        // 如果没有时间戳，默认覆盖
+        allSubmissions[existingIndex] = sub;
+      }
+    }
+  });
+
+  // 合并API提交 (API通常是最权威的)
+  apiSubmissions.forEach(sub => {
+    if (!sub || !sub.studentId) return;
+    const existingIndex = allSubmissions.findIndex(s => s && String(s.studentId) === String(sub.studentId));
+    if (existingIndex === -1) {
+      allSubmissions.push(sub);
+    } else {
+      const existing = allSubmissions[existingIndex];
+      // 如果API的时间更新，则覆盖
+      if (existing && sub.submittedAt && existing.submittedAt) {
+        if (new Date(sub.submittedAt) > new Date(existing.submittedAt)) {
+            allSubmissions[existingIndex] = sub;
+        }
+      } else {
+        // API数据优先
+        allSubmissions[existingIndex] = sub;
+      }
     }
   });
 
@@ -736,14 +811,16 @@ function loadExistingSubmission(assignment, options = {}) {
   }
 
   const existing = allSubmissions.find(
-    s => s.studentId === targetStudentId
+    s => String(s.studentId) === String(targetStudentId)
   );
 
   if (!existing || !Array.isArray(existing.files) || existing.files.length === 0) {
+    console.log('⚠️ 未找到该学生的提交记录:', targetStudentId);
     return;
   }
 
   try {
+    console.log(`📂 加载提交记录: ${existing.id} (时间: ${existing.submittedAt})`);
     // 将提交的文件内容写回编辑器
     existing.files.forEach(file => {
       if (file && file.name && typeof file.content === 'string') {
@@ -764,7 +841,8 @@ function loadExistingSubmission(assignment, options = {}) {
       }
     }
 
-    console.log('📂 已加载已有作业提交内容');
+    console.log('✅ 已成功加载作业提交内容');
+    showToast('已加载最新的作业提交内容', 'success');
   } catch (error) {
     console.error('加载已有提交内容失败:', error);
   }
@@ -885,6 +963,19 @@ function goBackToAssignment() {
     return;
   }
 
+  // 检查是否是教师审阅模式
+  const urlParams = new URLSearchParams(window.location.search);
+  const assignmentId = urlParams.get('assignment');
+  const mode = urlParams.get('mode');
+
+  if (currentUser.role === 'teacher' && mode === 'review' && assignmentId) {
+    console.log('👨‍🏫 [goBackToAssignment] 教师审阅模式，返回作业详情页');
+    localStorage.setItem('editor-return-page', 'assignment-details');
+    localStorage.setItem('return-assignment-id', assignmentId);
+    window.location.href = 'main.html';
+    return;
+  }
+
   // 根据用户角色返回到对应的仪表盘
   if (currentUser.role === 'student') {
     console.log('👨‍🎓 [goBackToAssignment] 返回学生仪表盘');
@@ -930,6 +1021,12 @@ function addAssignmentSubmitButton(assignment) {
 function submitAssignment(assignment) {
   // 移除确认弹窗，直接提交
 
+  if (!fileManager) {
+    console.error('文件管理器未初始化，无法提交');
+    showToast('系统未就绪，请刷新页面重试', 'error');
+    return;
+  }
+
   try {
     // 获取当前用户信息 - 统一存储键
     const userStr = sessionStorage.getItem('current-user') ||
@@ -939,6 +1036,49 @@ function submitAssignment(assignment) {
 
     // 收集所有文件内容
     const files = [];
+
+    // FIX: 强制从编辑器同步最新内容到 fileManager (安全版)
+    if (window.editors && window.fileManager) {
+      try {
+        // 1. 保存当前正在编辑的文件
+        if (window.fileManager.saveCurrentFile) {
+           window.fileManager.saveCurrentFile();
+        }
+
+        const currentPath = window.fileManager.currentFilePath;
+        
+        // 2. 同步标准文件 (仅当它们未被其他文件占用编辑器时)
+        
+        // 同步 HTML
+        if (!currentPath || currentPath === 'html/index.html' || !currentPath.endsWith('.html')) {
+           const htmlContent = window.editors.getValue('html');
+           if (htmlContent !== undefined) {
+             window.fileManager.files['html/index.html'] = htmlContent;
+           }
+        }
+
+        // 同步 CSS
+        if (!currentPath || currentPath === 'css/style.css' || !currentPath.endsWith('.css')) {
+           const cssContent = window.editors.getValue('css');
+           if (cssContent !== undefined) {
+             window.fileManager.files['css/style.css'] = cssContent;
+           }
+        }
+
+        // 同步 JS (最关键：避免用 JSON/其他JS 覆盖 main.js)
+        if (!currentPath || currentPath === 'js/main.js') {
+           const jsContent = window.editors.getValue('js');
+           if (jsContent !== undefined) {
+             window.fileManager.files['js/main.js'] = jsContent;
+           }
+        }
+        
+        console.log('✅ 已安全同步编辑器内容');
+      } catch (e) {
+        console.error('同步编辑器内容失败:', e);
+      }
+    }
+
     const allFiles = fileManager.files;
 
     try {
@@ -959,10 +1099,13 @@ function submitAssignment(assignment) {
       } else if (typeof allFiles === 'object') {
         // 如果是普通对象，使用Object.entries()
         for (const [fileName, fileData] of Object.entries(allFiles)) {
-          if (fileData && fileData.content && fileData.content.trim()) {
+          // 兼容直接存储字符串的情况
+          const content = (fileData && typeof fileData === 'object' && fileData.content) ? fileData.content : fileData;
+          
+          if (content && typeof content === 'string' && content.trim()) {
             files.push({
               name: fileName,
-              content: fileData.content,
+              content: content,
               type: fileName.endsWith('.html') ? 'html' :
                     fileName.endsWith('.css') ? 'css' :
                     fileName.endsWith('.js') ? 'javascript' : 'text'
@@ -1018,6 +1161,21 @@ function submitAssignment(assignment) {
     submissions.push(submissionData);
     localStorage.setItem('oj-assignment-submissions', JSON.stringify(submissions));
 
+    // 同时也更新自动保存记录，确保提交时的状态被保存（防止提交失败后刷新丢失最后几秒的更改）
+    try {
+      const autoSaveFiles = {};
+      files.forEach(f => {
+        autoSaveFiles[f.name] = f.content;
+      });
+      localStorage.setItem(`assignment-autosave-${submissionData.assignmentId}`, JSON.stringify({
+        files: autoSaveFiles,
+        savedAt: new Date().toISOString()
+      }));
+      console.log('💾 提交前已强制更新自动保存记录');
+    } catch (e) {
+      console.error('提交前更新自动保存失败:', e);
+    }
+
     // 显示调试信息
     showDebugInfo();
 
@@ -1032,78 +1190,196 @@ function submitAssignment(assignment) {
       totalSubmissions: submissions.length
     });
 
-    // 动态导入assignmentManager并提交到服务器
-    import('./assignmentManager.js').then(({ assignmentManager }) => {
-      const content = files.map(file => `// ${file.name}\n${file.content}`).join('\n\n');
+    // 直接调用 API 提交作业到数据库
+    const API_BASE = 'http://127.0.0.1:5024/api';
+    
+    // 转换文件格式为对象
+    const filesObject = {};
+    files.forEach(file => {
+      filesObject[file.name] = file.content;
+    });
 
-      assignmentManager.submitAssignment(assignment.id, {
-        content,
-        files,
-        studentInfo: {
-          id: currentUser.id,
-          name: currentUser.fullName || currentUser.username
-        }
-      }).then(() => {
-        alert('作业提交成功！老师可以查看和批改你的作业了。');
-        // 返回到作业列表页面
+    fetch(`${API_BASE}/assignments/submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        assignmentId: submissionData.assignmentId,
+        studentId: currentUser.id,
+        studentName: currentUser.fullName || currentUser.username,
+        studentEmail: currentUser.email || '',
+        files: filesObject,
+        content: ''
+      })
+    })
+    .then(response => response.json())
+    .then(result => {
+      if (result.success) {
+        console.log('✅ 作业提交成功:', result);
+        showToast('作业提交成功！正在返回...', 'success');
+        
+        // 清除自动保存
+        localStorage.removeItem(`assignment-autosave-${submissionData.assignmentId}`);
+        
+        // 延迟跳转，让用户看到提示
+        setTimeout(() => {
+          goBackToAssignment();
+        }, 1500);
+      } else {
+        console.error('❌ 作业提交失败:', result.message);
+        showToast('提交失败: ' + result.message, 'error');
+      }
+    })
+    .catch(error => {
+      console.error('❌ API调用失败:', error);
+      showToast('网络连接失败，作业已保存到本地', 'error');
+      // 即使API失败，也返回到作业列表
+      setTimeout(() => {
         goBackToAssignment();
-      }).catch(error => {
-        console.warn('服务器提交失败，但本地已保存:', error);
-        alert('作业已保存到本地，将在网络恢复后同步到服务器。老师可以查看你的作业。');
-        // 即使服务器提交失败，也返回到作业列表
-        goBackToAssignment();
-      });
-    }).catch(error => {
-      console.warn('无法加载assignmentManager，但本地已保存:', error);
-      alert('作业已保存到本地。老师可以查看你的作业。');
-      // 即使无法加载manager，也返回到作业列表
-      goBackToAssignment();
+      }, 2000);
     });
 
   } catch (error) {
     console.error('提交失败:', error);
-    alert('提交失败: ' + error.message);
+    showToast('提交过程出错: ' + error.message, 'error');
   }
+}
+
+/**
+ * 显示 Toast 通知
+ */
+function showToast(message, type = 'info') {
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;';
+    document.body.appendChild(container);
+  }
+  
+  const toast = document.createElement('div');
+  const bgColor = type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#3B82F6';
+  const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+  
+  toast.style.cssText = `
+    background-color: ${bgColor};
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    min-width: 250px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    pointer-events: auto;
+  `;
+  
+  toast.innerHTML = `<span style="font-size: 1.2em;">${icon}</span><span>${message}</span>`;
+  
+  container.appendChild(toast);
+  
+  // Animation
+  requestAnimationFrame(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(0)';
+  });
+  
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(20px)';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }
 
 /**
  * 设置自动保存
  */
 function setupAutoSave(assignmentId) {
-  // 每30秒自动保存一次
+  console.log('💾 初始化自动保存功能, 作业ID:', assignmentId);
+  
+  // 1. 立即尝试恢复
+  try {
+    const autoSaveData = localStorage.getItem(`assignment-autosave-${assignmentId}`);
+    if (autoSaveData) {
+      const { files, savedAt } = JSON.parse(autoSaveData);
+      console.log(`📂 发现自动保存的内容 (保存于 ${new Date(savedAt).toLocaleString()})`);
+      
+      // 恢复到 fileManager 和编辑器
+      if (window.fileManager) {
+        Object.entries(files).forEach(([fileName, content]) => {
+           // 更新 fileManager
+           if (window.fileManager.files instanceof Map) {
+             window.fileManager.files.set(fileName, content);
+           } else {
+             window.fileManager.files[fileName] = content;
+           }
+           
+           // 更新编辑器
+           if (window.editors) {
+             if (fileName.includes('html')) window.editors.setValue('html', content);
+             else if (fileName.includes('css')) window.editors.setValue('css', content);
+             else if (fileName.includes('js')) window.editors.setValue('js', content);
+           }
+        });
+        console.log('✅ 自动保存内容已恢复到编辑器');
+        showToast('已恢复上次未提交的作业内容', 'info');
+      }
+    }
+  } catch (error) {
+    console.error('恢复自动保存内容失败:', error);
+  }
+
+  // 2. 设置定时保存 (每5秒)
   setInterval(() => {
     try {
+      // 检查必要对象是否存在
+      if (!window.editors || !window.fileManager) {
+        return;
+      }
+
+      // 强制从编辑器同步最新内容
+      if (window.editors && window.fileManager) {
+         const html = window.editors.getValue('html');
+         const css = window.editors.getValue('css');
+         const js = window.editors.getValue('js');
+         
+         if (html !== undefined) window.fileManager.files['html/index.html'] = html;
+         if (css !== undefined) window.fileManager.files['css/style.css'] = css;
+         if (js !== undefined) window.fileManager.files['js/main.js'] = js;
+      }
+
       const files = {};
-      fileManager.files.forEach((fileData, fileName) => {
-        files[fileName] = fileData.content;
-      });
+      const allFiles = window.fileManager.files;
+      
+      // 统一处理 Map 或 Object
+      if (allFiles instanceof Map) {
+        for (const [name, content] of allFiles.entries()) {
+           files[name] = (typeof content === 'object' && content.content) ? content.content : content;
+        }
+      } else {
+        for (const [name, content] of Object.entries(allFiles)) {
+           files[name] = (typeof content === 'object' && content.content) ? content.content : content;
+        }
+      }
 
       localStorage.setItem(`assignment-autosave-${assignmentId}`, JSON.stringify({
         files,
         savedAt: new Date().toISOString()
       }));
 
-      console.log('💾 作业已自动保存');
+      // console.log('💾 作业已自动保存'); // 减少日志噪音
+      
     } catch (error) {
       console.error('自动保存失败:', error);
     }
-  }, 30000);
-
-  // 恢复自动保存的内容
-  try {
-    const autoSaveData = localStorage.getItem(`assignment-autosave-${assignmentId}`);
-    if (autoSaveData) {
-      const { files } = JSON.parse(autoSaveData);
-      Object.entries(files).forEach(([fileName, content]) => {
-        if (fileManager.files.has(fileName)) {
-          fileManager.updateFile(fileName, content);
-        }
-      });
-      console.log('📂 已恢复自动保存的内容');
-    }
-  } catch (error) {
-    console.error('恢复自动保存内容失败:', error);
-  }
+  }, 5000);
 }
 
 /**

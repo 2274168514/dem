@@ -2,39 +2,13 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Permissions-Policy" content="unload=(), browsing-topics=(), idle-detection=(), magnetometer=(), accelerometer=(), gyroscope=(), camera=(), microphone=(), geolocation=(), payment=(), interest-cohort=()">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>编程教学平台 - 登录</title>
-    <!-- 抑制浏览器扩展产生的无关错误 -->
-    <script>
-        // 静默处理浏览器扩展相关的错误
-        window.addEventListener('error', function(e) {
-            if (e.message && (
-                e.message.includes('Could not establish connection') ||
-                e.message.includes('message channel closed') ||
-                e.message.includes('Receiving end does not exist') ||
-                e.message.includes('Extension context invalidated')
-            )) {
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
-            }
-        }, true);
-        
-        window.addEventListener('unhandledrejection', function(e) {
-            if (e.reason && e.reason.message && (
-                e.reason.message.includes('Could not establish connection') ||
-                e.reason.message.includes('message channel closed') ||
-                e.reason.message.includes('Receiving end does not exist') ||
-                e.reason.message.includes('Extension context invalidated')
-            )) {
-                e.preventDefault();
-                return false;
-            }
-        });
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>编程教学平台</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
         * {
             margin: 0;
             padding: 0;
@@ -42,444 +16,467 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0a0a0a;
-            color: #ffffff;
-            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            height: 100vh;
             display: flex;
-            align-items: center;
+            overflow: hidden;
+            background-color: #f0f2f5;
+        }
+
+        /* Left Side - Illustration */
+        .illustration {
+            width: 60%;
+            background-color: #e6e6e6;
+            position: relative;
+            display: flex;
             justify-content: center;
+            align-items: center; /* Centered vertically */
             overflow: hidden;
+        }
+
+        .character-group {
             position: relative;
+            width: 600px;
+            height: 450px;
+            transform: scale(1.4); /* Overall scale up */
         }
 
-        /* 网格背景 */
-        body::before {
-            content: '';
+        .char {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image:
-                linear-gradient(rgba(52, 152, 219, 0.15) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(52, 152, 219, 0.15) 1px, transparent 1px);
-            background-size: 60px 60px;
-            animation: gridMove 20s linear infinite;
-            z-index: 1;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-origin: bottom center;
+            will-change: transform;
         }
 
-        @keyframes gridMove {
-            0% {
-                transform: translate(0, 0);
-            }
-            100% {
-                transform: translate(50px, 50px);
-            }
+        /* Entrance Animation */
+        @keyframes elasticEntrance {
+            0% { opacity: 0; transform: translateY(400px) scale(0.3) rotate(-15deg); }
+            50% { opacity: 1; transform: translateY(-40px) scale(1.1) rotate(5deg); }
+            65% { transform: translateY(15px) scale(0.95) rotate(-3deg); }
+            80% { transform: translateY(-10px) scale(1.02) rotate(2deg); }
+            100% { transform: translateY(0) scale(1) rotate(0); }
         }
 
-        /* 登录容器 */
-        .login-container {
-            background:
-                radial-gradient(ellipse at top left, rgba(128, 128, 128, 0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at bottom right, rgba(96, 96, 96, 0.06) 0%, transparent 50%),
-                linear-gradient(135deg, #2a2a2a 0%, #383838 50%, #2d2d2d 100%);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow:
-                0 20px 60px rgba(0, 0, 0, 0.7),
-                0 10px 30px rgba(0, 0, 0, 0.5),
-                inset 0 2px 0 rgba(255, 255, 255, 0.12),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.6);
-            width: 100%;
-            max-width: 320px;
-            position: relative;
-            animation: slideUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            z-index: 1;  /* 降低z-index，让粒子效果显示在前面 */
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        /* 容器光泽效果 */
-        .login-container::before {
-            content: '';
-            position: absolute;
-            top: -100%;
-            left: -100%;
-            width: 300%;
-            height: 300%;
-            background: conic-gradient(
-                from 0deg,
-                transparent 0deg,
-                rgba(160, 160, 160, 0.08) 60deg,
-                transparent 120deg,
-                rgba(128, 128, 128, 0.06) 180deg,
-                transparent 240deg,
-                rgba(160, 160, 160, 0.08) 300deg,
-                transparent 360deg
-            );
-            animation: rotate 8s linear infinite;
-            pointer-events: none;
-        }
-
-        /* 内部光晕效果 */
-        .login-container::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 150%;
-            height: 150%;
-            background: radial-gradient(
-                circle,
-                rgba(144, 144, 144, 0.08) 0%,
-                transparent 70%
-            );
-            transform: translate(-50%, -50%);
-            animation: pulse 3s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.8); }
-            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Logo区域 */
-        .logo-section {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .logo-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 8px;
-            animation: fadeIn 0.8s ease-out;
-            background: linear-gradient(135deg, #e0e0e0, #b0b0b0, #e0e0e0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            background-size: 200% 200%;
-            animation: gradientMove 4s ease infinite, fadeIn 0.8s ease-out;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        @keyframes gradientMove {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        .logo-subtitle {
-            font-size: 13px;
-            color: #a0a0a0;
-            animation: fadeIn 1s ease-out;
-            letter-spacing: 1px;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        /* 表单样式 */
-        .form-group {
-            margin-bottom: 18px;
-            animation: slideInLeft 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            position: relative;
-        }
-
-        @keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-30px) scale(0.8);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0) scale(1);
-            }
-        }
-
-        .form-label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: #e0e6ed;
-            margin-bottom: 8px;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-            letter-spacing: 0.5px;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 14px 18px;
-            background:
-                linear-gradient(135deg, rgba(52, 152, 219, 0.05) 0%, transparent 100%),
-                linear-gradient(135deg, #2c2c2e 0%, #1a1a1c 100%);
-            border: 2px solid transparent;
-            border-radius: 12px;
-            color: #ffffff;
-            font-size: 15px;
-            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-            position: relative;
-            backdrop-filter: blur(5px);
-        }
-
-        .form-input::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(45deg, #3498db, #2ecc71, #3498db);
-            border-radius: 12px;
+        .char.entrance-hidden {
             opacity: 0;
-            z-index: -1;
-            transition: opacity 0.5s ease;
+            transform: translateY(400px) scale(0.5);
         }
 
-        .form-input::placeholder {
-            color: #8b92a8;
-            font-style: italic;
+        .char.entering {
+            animation: elasticEntrance 1.5s cubic-bezier(0.28, 0.84, 0.42, 1) forwards;
         }
 
-        .form-input:focus {
-            outline: none;
-            border-color: transparent;
-            background:
-                linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, rgba(46, 204, 113, 0.05) 100%),
-                linear-gradient(135deg, #2c3135 0%, #1a1a1d 100%);
-            color: #ffffff;
-            transform: translateY(-2px) scale(1.02);
+        /* Purple Character - Tall, Back Left */
+        .char-purple {
+            width: 170px;
+            height: 360px;
+            background-color: #6c5ce7;
+            bottom: 0;
+            left: 80px;
+            border-radius: 8px 8px 0 0; /* Sharper corners */
+            z-index: 1;
+            transform: skewY(-2deg); /* Slight angle */
         }
 
-        .form-input:focus::before {
-            opacity: 1;
-        }
-
-        /* 记住我 */
-        .remember-section {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            animation: slideInLeft 0.8s ease-out;
-        }
-
-        .remember-label {
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-            color: #bdc3c7;
-            cursor: pointer;
-        }
-
-        .remember-checkbox {
-            width: 16px;
-            height: 16px;
-            margin-right: 8px;
-            accent-color: #3498db;
-        }
-
-        .register-link, .forgot-link {
-            color: #3498db;
-            text-decoration: none;
-            font-size: 14px;
-            transition: color 0.2s;
-            margin: 0 8px;
-        }
-
-        .register-link:hover, .forgot-link:hover {
-            color: #2980b9;
-        }
-
-        /* 登录按钮 */
-        .login-button {
-            width: 100%;
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            animation: slideInUp 1s ease-out;
-            position: relative;
-            overflow: hidden;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .login-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(255, 255, 255, 0.2),
-                transparent
-            );
-            transition: left 0.5s ease;
-        }
-
-        .login-button:hover {
-            background: linear-gradient(135deg, #2980b9 0%, #21618c 100%);
-            transform: translateY(-3px);
-            box-shadow:
-                0 8px 25px rgba(52, 152, 219, 0.4),
-                0 4px 12px rgba(52, 152, 219, 0.2);
-        }
-
-        .login-button:hover::before {
-            left: 100%;
-        }
-
-        .login-button:active {
-            transform: translateY(-1px);
-            box-shadow:
-                0 4px 15px rgba(52, 152, 219, 0.3),
-                0 2px 8px rgba(52, 152, 219, 0.1);
-        }
-
-        .login-button:disabled {
-            background: linear-gradient(135deg, #404040 0%, #333333 100%);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* 粒子效果 */
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
+        /* Black Character - Medium, Back Right */
+        .char-black {
+            width: 130px;
+            height: 240px;
+            background-color: #2d3436;
+            bottom: 0;
+            left: 240px;
+            border-radius: 20px 20px 0 0;
             z-index: 2;
         }
 
-        .particle {
+        /* Orange Character - Blob, Front Left */
+        .char-orange {
+            width: 240px;
+            height: 170px;
+            background-color: #ff7675;
+            bottom: 0;
+            left: 0px;
+            border-radius: 120px 120px 0 0;
+            z-index: 3;
+        }
+
+        /* Yellow Character - Blob, Front Right */
+        .char-yellow {
+            width: 150px;
+            height: 210px;
+            background-color: #ffeaa7;
+            bottom: 0;
+            left: 350px;
+            border-radius: 75px 75px 0 0;
+            z-index: 3;
+        }
+
+        /* Eyes Container */
+        .eyes {
             position: absolute;
-            background: rgba(52, 152, 219, 0.6);
-            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            width: 100%;
             pointer-events: none;
-            animation: floatUp 15s linear infinite;
         }
 
-        @keyframes floatUp {
-            0% {
-                bottom: -20px;
-                opacity: 0;
-                transform: translateX(0) scale(0.5) rotate(0deg);
-            }
-            10% {
-                opacity: 1;
-            }
-            25% {
-                transform: translateX(calc(var(--drift) * 0.3)) scale(0.8) rotate(90deg);
-            }
-            50% {
-                transform: translateX(calc(var(--drift) * 0.6)) scale(1.1) rotate(180deg);
-            }
-            75% {
-                transform: translateX(calc(var(--drift) * 0.8)) scale(1.3) rotate(270deg);
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                bottom: 100vh;
-                opacity: 0;
-                transform: translateX(calc(var(--drift) * 1)) scale(1.5) rotate(360deg);
-            }
+        /* Eye Styles */
+        .eye {
+            position: relative;
+            background: white;
+            border-radius: 50%;
+            overflow: hidden;
+            transition: height 0.1s;
+        }
+        
+        .eye-dot {
+            background: #2d3436;
+            border-radius: 50%;
         }
 
-        /* 错误消息 */
-        .error-message {
-            background: rgba(231, 76, 60, 0.1);
-            border: 1px solid rgba(231, 76, 60, 0.3);
-            color: #e74c3c;
-            padding: 12px 16px;
-            border-radius: 4px;
+        .pupil {
+            position: absolute;
+            background: #2d3436;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease-out;
+        }
+
+        /* Character Specific Features */
+        
+        /* Purple */
+        .char-purple .eyes { top: 60px; gap: 30px; }
+        .char-purple .eye { width: 28px; height: 28px; }
+        .char-purple .pupil { width: 12px; height: 12px; }
+        .char-purple .mouth {
+            position: absolute;
+            width: 6px;
+            height: 20px;
+            background: #2d3436;
+            border-radius: 3px;
+            left: 50%;
+            top: 110px;
+            transform: translateX(-50%);
+        }
+
+        /* Black */
+        .char-black .eyes { top: 50px; gap: 18px; }
+        .char-black .eye { width: 26px; height: 26px; }
+        .char-black .pupil { width: 10px; height: 10px; }
+
+        /* Orange - Bean Eyes */
+        .char-orange .eyes { top: 50px; gap: 50px; }
+        .char-orange .eye { 
+            width: 16px; 
+            height: 16px; 
+            background: #2d3436; 
+            overflow: visible;
+        }
+        .char-orange .pupil { display: none; }
+        .char-orange .mouth {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #2d3436;
+            border-radius: 50%;
+            left: 50%;
+            top: 80px;
+            transform: translateX(-50%);
+            transition: all 0.3s ease;
+        }
+
+        .char-orange .mouth.smile {
+            width: 24px;
+            height: 12px;
+            border-radius: 0 0 24px 24px;
+            top: 82px; /* Adjust top slightly to align */
+        }
+
+        /* Yellow - Side Eye (Chick) */
+        .char-yellow .eyes { top: 45px; justify-content: flex-end; padding-right: 35px; }
+        .char-yellow .eye { 
+            width: 18px; 
+            height: 18px; 
+            background: #2d3436; 
+            overflow: visible;
+        }
+        .char-yellow .pupil { display: none; }
+        .char-yellow .mouth {
+            position: absolute;
+            width: 45px; /* Longer mouth */
+            height: 6px;
+            background: #2d3436;
+            border-radius: 3px;
+            right: -12px; /* Stick out from the edge */
+            top: 85px;
+            transform: rotate(-8deg);
+        }
+
+        /* Blinking Animation Class */
+        .blink .eye {
+            height: 2px !important;
+            margin-top: 11px; /* Center the closed eye line */
+        }
+        /* Adjust margin for different eye sizes when blinking */
+        .char-purple.blink .eye { margin-top: 11px; }
+        .char-black.blink .eye { margin-top: 9px; }
+        .char-orange.blink .eye { height: 2px !important; margin-top: 5px; background: #2d3436; }
+        .char-yellow.blink .eye { height: 2px !important; margin-top: 6px; background: #2d3436; }
+
+
+        /* States */
+        
+        /* Expecting (Now on Username) */
+        .char.expecting {
+            transform: translateY(-15px) scale(1.05);
+        }
+        .char-purple.expecting { transform: translateY(-20px) scale(1.05) rotate(-5deg); }
+        .char-orange.expecting { transform: translateY(-10px) scale(1.05) rotate(2deg); }
+        .char-yellow.expecting { transform: translateY(-15px) scale(1.05) rotate(-3deg); }
+
+        /* Leaning Right (Now on Password) */
+        .char.leaning-right {
+            transform: translateX(25px) rotate(5deg);
+        }
+        .char-purple.leaning-right { transform: translateX(30px) rotate(5deg) skewX(-2deg); }
+        .char-black.leaning-right { transform: translateX(20px) rotate(5deg); }
+        .char-orange.leaning-right { transform: translateX(25px) rotate(5deg); }
+        .char-yellow.leaning-right { transform: translateX(20px) rotate(5deg); }
+
+        /* Shy (Show Password) */
+        .char.shy {
+            /* Rotate to show back */
+            transform: rotateY(180deg);
+        }
+        /* Ensure backface is visible and same color */
+        .char {
+            backface-visibility: visible; 
+        }
+        /* Hide facial features when rotated */
+        .char.shy .eyes, 
+        .char.shy .mouth {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        /* Typing Animation */
+        .char.typing {
+            animation: bob 0.4s infinite alternate ease-in-out;
+        }
+        @keyframes bob {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-5px); }
+        }
+
+        /* Right Side - Form */
+        .login-form {
+            width: 40%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .logo {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .logo i {
+            font-size: 40px;
+            color: #2d3436;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #2d3436;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        p.subtitle {
+            color: #b2bec3;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
             font-size: 14px;
+            color: #636e72;
+            font-weight: 600;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #dfe6e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: #f9f9f9;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #6c5ce7;
+            background: white;
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.1);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 45px;
+            cursor: pointer;
+            color: #b2bec3;
+            transition: color 0.3s;
+            padding: 5px;
+        }
+        
+        .password-toggle:hover {
+            color: #6c5ce7;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+            color: #636e72;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 15px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background-color: #2d3436;
+            color: white;
+            box-shadow: 0 4px 6px rgba(45, 52, 54, 0.2);
+        }
+        
+        .btn-primary:hover {
+            background-color: #000;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(45, 52, 54, 0.3);
+        }
+
+        .btn-google {
+            background-color: white;
+            color: #2d3436;
+            border: 2px solid #f1f2f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-google:hover {
+            background-color: #f8f9fa;
+            border-color: #dfe6e9;
+        }
+
+        /* Character Error Animation */
+        @keyframes charShake {
+            0%, 100% { margin-left: 0; }
+            20% { margin-left: -10px; }
+            40% { margin-left: 10px; }
+            60% { margin-left: -10px; }
+            80% { margin-left: 10px; }
+        }
+        
+        .char.error-shake {
+            animation: charShake 0.4s ease-in-out;
+        }
+
+        .signup-link {
+            text-align: center;
+            font-size: 14px;
+            color: #636e72;
+        }
+        
+        .signup-link a {
+            color: #2d3436;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Error Message */
+        #error-msg {
+            background-color: #ffecec;
+            color: #ff7675;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
             margin-bottom: 20px;
             display: none;
+            font-size: 14px;
+            border: 1px solid #ffcccc;
         }
 
-        /* 注册模态框优化样式 */
+        /* Register Modal Styles */
         .register-modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.3);  /* 降低背景透明度，让背景更清晰 */
-            backdrop-filter: blur(2px);  /* 降低模糊效果 */
-            z-index: 1;  /* 设置z-index为1，低于粒子效果的2 */
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
+            pointer-events: none;
             transition: opacity 0.3s ease;
         }
 
         .register-modal.show {
             opacity: 1;
+            pointer-events: all;
         }
 
         .register-content {
-            background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 50%, #2a2a2a 100%);
+            background: white;
             padding: 0;
             border-radius: 20px;
             width: 90%;
             max-width: 480px;
             max-height: 90vh;
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow:
-                0 20px 60px rgba(0, 0, 0, 0.8),
-                0 10px 30px rgba(0, 0, 0, 0.6),
-                inset 0 2px 0 rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
             transform: translateY(30px) scale(0.95);
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
@@ -493,9 +490,9 @@
             position: absolute;
             top: 15px;
             right: 15px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.05);
             border: none;
-            color: #ffffff;
+            color: #2d3436;
             font-size: 24px;
             cursor: pointer;
             width: 36px;
@@ -509,110 +506,21 @@
         }
 
         .register-close:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: rotate(90deg) scale(1.1);
+            background: rgba(0, 0, 0, 0.1);
+            transform: rotate(90deg);
         }
 
         .register-body {
-            padding: 50px 30px 30px 30px;
+            padding: 40px 30px 30px 30px;
             max-height: 90vh;
             overflow-y: auto;
-            /* 隐藏滚动条 */
-            scrollbar-width: none;  /* Firefox */
-            -ms-overflow-style: none;  /* IE and Edge */
-        }
-
-        .register-body::-webkit-scrollbar {
-            display: none;  /* Chrome, Safari, Opera */
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-            animation: slideInUp 0.5s ease-out;
-            animation-fill-mode: both;
-        }
-
-        .form-group:nth-child(1) { animation-delay: 0.1s; }
-        .form-group:nth-child(2) { animation-delay: 0.2s; }
-        .form-group:nth-child(3) { animation-delay: 0.3s; }
-        .form-group:nth-child(4) { animation-delay: 0.4s; }
-        .form-group:nth-child(5) { animation-delay: 0.5s; }
-
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #e0e6ed;
-            font-size: 14px;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-            letter-spacing: 0.5px;
-        }
-
-        .form-input, .form-select {
-            width: 100%;
-            padding: 14px 16px;
-            background: linear-gradient(
-                135deg,
-                rgba(52, 152, 219, 0.05) 0%,
-                transparent 100%
-            ), linear-gradient(
-                135deg,
-                #1a1a1c 0%,
-                #0f0f11 100%
-            );
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: #ffffff;
-            font-size: 15px;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            outline: none;
-        }
-
-        .form-input::placeholder {
-            color: #8b92a8;
-            font-style: italic;
-        }
-
-        .form-input:focus, .form-select:focus {
-            border-color: #3498db;
-            background: linear-gradient(
-                135deg,
-                rgba(52, 152, 219, 0.1) 0%,
-                rgba(46, 204, 113, 0.05) 100%
-            ), linear-gradient(
-                135deg,
-                #1a1a1d 0%,
-                #0f0f10 100%
-            );
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-        }
-
-        .form-select {
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 16px center;
-            padding-right: 40px;
         }
 
         .role-toggle {
             display: flex;
             gap: 10px;
             margin-bottom: 25px;
-            background: rgba(255, 255, 255, 0.05);
+            background: #f1f2f6;
             padding: 4px;
             border-radius: 10px;
         }
@@ -623,41 +531,34 @@
             background: transparent;
             border: none;
             border-radius: 8px;
-            color: #bdc3c7;
+            color: #636e72;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-weight: 500;
+            font-weight: 600;
             font-size: 14px;
         }
 
         .role-option.active {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            color: #ffffff;
-            transform: scale(1.02);
-            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.4);
-        }
-
-        .role-option:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.1);
-            color: #ffffff;
+            background: white;
+            color: #2d3436;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .role-fields {
-            background: rgba(255, 255, 255, 0.02);
+            background: #f9f9f9;
             border-radius: 12px;
             padding: 20px;
             margin-top: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid #eee;
         }
 
         .role-fields-title {
-            color: #3498db;
+            color: #2d3436;
             font-size: 13px;
             font-weight: 600;
             margin-bottom: 15px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            opacity: 0.8;
         }
 
         .register-actions {
@@ -665,10 +566,10 @@
             gap: 12px;
             margin-top: 25px;
             padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid #eee;
         }
 
-        .btn-cancel, .btn-submit {
+        .btn-cancel {
             flex: 1;
             padding: 14px 20px;
             border: none;
@@ -676,225 +577,716 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-cancel {
-            background: linear-gradient(135deg, #666666 0%, #555555 100%);
-            color: #ffffff;
+            background: #dfe6e9;
+            color: #636e72;
+            transition: all 0.2s;
         }
 
         .btn-cancel:hover {
-            background: linear-gradient(135deg, #555555 0%, #444444 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            background: #b2bec3;
+            color: white;
         }
 
         .btn-submit {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            color: #ffffff;
             flex: 2;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #2d3436;
+            color: white;
+            transition: all 0.2s;
         }
 
         .btn-submit:hover {
-            background: linear-gradient(135deg, #2980b9 0%, #21618c 100%);
+            background: #000;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
-        }
-
-        .btn-submit:active {
-            transform: translateY(0);
-        }
-
-        /* 响应式 */
-        @media (max-width: 480px) {
-            .login-container {
-                margin: 20px;
-                padding: 30px 20px;
-            }
-
-            .logo-title {
-                font-size: 20px;
-            }
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
     </style>
-    <!-- 全局设置管理器 - 统一主题和语言 -->
-    <script src="js/globalSettings.js"></script>
 </head>
 <body>
-    <!-- 粒子效果 -->
-    <div class="particles" id="particles"></div>
 
-    <div class="login-container">
-        <div class="logo-section">
-            <h1 class="logo-title">编程教学平台</h1>
-            <p class="logo-subtitle">专业的在线编程学习环境</p>
-        </div>
-
-        <form id="loginForm">
-            <div class="error-message" id="errorMessage"></div>
-
-            <div class="form-group" style="animation-delay: 0.1s;">
-                <label class="form-label" for="username">用户名</label>
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    class="form-input"
-                    placeholder="请输入用户名"
-                    required
-                    autocomplete="username"
-                >
+    <div class="illustration">
+        <div class="character-group">
+            <!-- Purple -->
+            <div class="char char-purple entrance-hidden" id="char-purple">
+                <div class="eyes">
+                    <div class="eye"><div class="pupil"></div></div>
+                    <div class="eye"><div class="pupil"></div></div>
+                </div>
+                <div class="mouth"></div>
             </div>
-
-            <div class="form-group" style="animation-delay: 0.2s;">
-                <label class="form-label" for="password">密码</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    class="form-input"
-                    placeholder="请输入密码"
-                    required
-                    autocomplete="current-password"
-                >
-            </div>
-
-            <div class="remember-section" style="animation-delay: 0.3s;">
-                <label class="remember-label">
-                    <input type="checkbox" class="remember-checkbox" id="remember">
-                    记住我
-                </label>
-                <div>
-                    <a href="#" class="register-link" id="registerLink">用户注册</a>
-                    <a href="#" class="forgot-link">忘记密码？</a>
+            
+            <!-- Black -->
+            <div class="char char-black entrance-hidden" id="char-black">
+                <div class="eyes">
+                    <div class="eye"><div class="pupil"></div></div>
+                    <div class="eye"><div class="pupil"></div></div>
                 </div>
             </div>
 
-            <button type="submit" class="login-button" style="animation-delay: 0.4s;">登录</button>
-        </form>
+            <!-- Orange -->
+            <div class="char char-orange entrance-hidden" id="char-orange">
+                <div class="eyes">
+                    <div class="eye"></div>
+                    <div class="eye"></div>
+                </div>
+                <div class="mouth"></div>
+            </div>
+
+            <!-- Yellow -->
+            <div class="char char-yellow entrance-hidden" id="char-yellow">
+                <div class="eyes">
+                    <div class="eye"></div>
+                </div>
+                <div class="mouth"></div>
+            </div>
+        </div>
     </div>
 
-    <script type="module">
-        import { userAuth } from './js/userAuth.js';
+    <div class="login-form">
+        <div class="lang-switch" style="position: absolute; top: 20px; right: 20px; cursor: pointer; font-weight: 600; color: #636e72; padding: 5px 10px; border: 1px solid #dfe6e9; border-radius: 5px;">
+            <span id="lang-btn">EN</span>
+        </div>
+        <div class="form-container">
+            <div class="logo" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <img src="image/logo.png" alt="Logo" style="height: 50px; width: auto;">
+                <span style="font-size: 40px; font-weight: 800; color: #2d3436; letter-spacing: -1px;">SLYCoder</span>
+            </div>
+            <h1 id="welcome-text" style="margin-bottom: 40px;">欢迎回来！</h1>
 
-        // 创建粒子效果
-        function createParticles() {
-            const particlesContainer = document.getElementById('particles');
-            const particleCount = 50; // 增加粒子数量
-            const colors = ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c'];
+            <div id="error-msg"></div>
 
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
+            <form id="loginForm">
+                <div class="input-group">
+                    <label id="label-username">用户名 / 邮箱</label>
+                    <input type="text" id="username" placeholder="请输入用户名" required>
+                </div>
 
-                // 随机大小
-                const size = Math.random() * 6 + 1;
-                particle.style.width = `${size}px`;
-                particle.style.height = `${size}px`;
+                <div class="input-group">
+                    <label id="label-password">密码</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                    <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+                </div>
 
-                // 随机位置
-                particle.style.left = `${Math.random() * 100}%`;
+                <div class="actions">
+                    <label><input type="checkbox"> <span id="label-remember">30天内免登录</span></label>
+                    <a href="#" id="link-forgot" style="color: #2d3436; text-decoration: none;">忘记密码？</a>
+                </div>
 
-                // 随机颜色
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                particle.style.background = `${color}99`; // 添加透明度
+                <button type="submit" class="btn btn-primary" id="btn-login">登录</button>
+            </form>
 
-                // 随机动画延迟
-                particle.style.animationDelay = `${Math.random() * 20}s`;
+            <div class="signup-link">
+                <span id="text-signup">还没有账号？</span> <a href="#" id="link-signup">注册</a>
+            </div>
+        </div>
+    </div>
 
-                // 随机动画持续时间
-                particle.style.animationDuration = `${Math.random() * 15 + 10}s`;
+    <script>
+        // --- Animation & Interaction Logic (Independent of Auth) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const chars = document.querySelectorAll('.char');
+            const charGroup = document.querySelector('.character-group');
+            const passwordInput = document.getElementById('password');
+            const usernameInput = document.getElementById('username');
+            const togglePassword = document.getElementById('togglePassword');
 
-                // 随机水平漂移
-                const drift = Math.random() * 200 - 100;
-                particle.style.setProperty('--drift', `${drift}px`);
+            console.log('Animation script loaded. Characters found:', chars.length);
 
-                particlesContainer.appendChild(particle);
-            }
-        }
+            // 0. Entrance Animation
+            setTimeout(() => {
+                chars.forEach((char, index) => {
+                    setTimeout(() => {
+                        char.classList.remove('entrance-hidden');
+                        char.classList.add('entering');
+                        
+                        // Remove animation class after it finishes to allow interactions
+                        setTimeout(() => {
+                            char.classList.remove('entering');
+                        }, 1500); // Match animation duration
+                    }, index * 300); // Slower stagger for more dramatic effect
+                });
+            }, 300);
 
-        createParticles();
+            // Helper to move eyes
+            function moveEyes(targetX, targetY) {
+                chars.forEach(char => {
+                    const pupils = char.querySelectorAll('.pupil');
+                    const eyes = char.querySelectorAll('.eye');
 
-        // 表单提交
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+                    // Strategy 1: Characters with Pupils (Purple & Black)
+                    if (pupils.length > 0) {
+                        pupils.forEach(pupil => {
+                            const eye = pupil.parentElement;
+                            const eyeRect = eye.getBoundingClientRect();
+                            const eyeCenterX = eyeRect.left + eyeRect.width / 2;
+                            const eyeCenterY = eyeRect.top + eyeRect.height / 2;
 
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            const remember = document.getElementById('remember').checked;
-            const errorEl = document.getElementById('errorMessage');
+                            const angle = Math.atan2(targetY - eyeCenterY, targetX - eyeCenterX);
+                            const maxRadius = eyeRect.width / 3; // Increased range
+                            const dist = Math.min(maxRadius, Math.hypot(targetX - eyeCenterX, targetY - eyeCenterY) / 5); // Increased sensitivity
 
-            // 清除错误信息
-            errorEl.style.display = 'none';
+                            const x = Math.cos(angle) * dist;
+                            const y = Math.sin(angle) * dist;
 
-            // 验证输入
-            if (!username || !password) {
-                errorEl.textContent = '请填写用户名和密码';
-                errorEl.style.display = 'block';
-                return;
-            }
+                            pupil.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+                        });
+                    } 
+                    // Strategy 2: Characters with Solid Eyes (Orange & Yellow)
+                    else {
+                        eyes.forEach(eye => {
+                            const charRect = char.getBoundingClientRect();
+                            const charCenterX = charRect.left + charRect.width / 2;
+                            const charCenterY = charRect.top + charRect.height / 2;
 
-            // 禁用按钮
-            const button = document.querySelector('.login-button');
-            button.disabled = true;
-            button.textContent = '登录中...';
+                            const angle = Math.atan2(targetY - charCenterY, targetX - charCenterX);
+                            const maxMove = 15; // Increased range
+                            const dist = Math.min(maxMove, Math.hypot(targetX - charCenterX, targetY - charCenterY) / 10); // Increased sensitivity
 
-            console.log('🔐 开始登录...', username);
+                            const x = Math.cos(angle) * dist;
+                            const y = Math.sin(angle) * dist;
 
-            try {
-                // 调用登录API
-                const result = await userAuth.login(username, password);
-                console.log('📩 登录结果:', result);
-
-                if (result.success) {
-                    // 记住我功能
-                    if (remember) {
-                        localStorage.setItem('remembered-user', username);
-                    } else {
-                        localStorage.removeItem('remembered-user');
+                            eye.style.transform = `translate(${x}px, ${y}px)`;
+                        });
                     }
 
-                    console.log('✅ 登录成功，正在跳转...');
-                    // 登录成功，跳转到主页
-                    window.location.href = 'main.html';
-                } else {
-                    errorEl.textContent = result.message || '登录失败';
-                    errorEl.style.display = 'block';
+                    // Strategy 3: Yellow Character Mouth (Head) Movement
+                    if (char.classList.contains('char-yellow')) {
+                        const mouth = char.querySelector('.mouth');
+                        if (mouth) {
+                            const charRect = char.getBoundingClientRect();
+                            // Use width for both dimensions to find the center of the "head" circle
+                            // The head is a semi-circle at the top, so center is at (width/2, width/2)
+                            const centerX = charRect.left + charRect.width / 2;
+                            const centerY = charRect.top + charRect.width / 2;
+
+                            const angle = Math.atan2(targetY - centerY, targetX - centerX);
+                            
+                            // Radius should be half of the original width (150px / 2 = 75px)
+                            // We add a bit to make it stick out slightly
+                            const radius = 78; 
+
+                            const x = Math.cos(angle) * radius;
+                            const y = Math.sin(angle) * radius;
+
+                            // Reset positioning to center to allow full rotation around it
+                            mouth.style.right = 'auto';
+                            mouth.style.left = '75px'; // Original center X
+                            mouth.style.top = '75px';  // Original center Y
+                            mouth.style.width = '45px';
+                            mouth.style.transformOrigin = 'center center';
+
+                            const deg = angle * (180 / Math.PI);
+
+                            // Translate to edge and rotate
+                            mouth.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${deg}deg)`;
+                        }
+                    }
+                });
+            }
+
+            // 1. Eye Tracking & Parallax
+            document.addEventListener('mousemove', (e) => {
+                // Don't track if characters are shy
+                if (document.querySelector('.char.shy')) return;
+
+                // If typing (focused on username), don't follow mouse, follow input logic instead
+                if (document.activeElement === usernameInput) return;
+
+                moveEyes(e.clientX, e.clientY);
+
+                // Parallax Effect
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+                const moveX = (e.clientX - centerX) / 20; // Increased movement
+                const moveY = (e.clientY - centerY) / 20; // Increased movement
+                
+                charGroup.style.transform = `scale(1.1) translate(${moveX}px, ${moveY}px)`;
+            });
+
+            // 2. Blinking Animation
+            function triggerBlink() {
+                if (document.querySelector('.char.shy')) return;
+
+                const randomChar = chars[Math.floor(Math.random() * chars.length)];
+                if(randomChar) {
+                    randomChar.classList.add('blink');
+                    setTimeout(() => {
+                        randomChar.classList.remove('blink');
+                    }, 200);
                 }
-            } catch (error) {
-                console.error('❌ 登录错误:', error);
-                errorEl.textContent = error.message || '网络错误，请重试';
-                errorEl.style.display = 'block';
-            } finally {
-                // 恢复按钮
-                button.disabled = false;
-                button.textContent = '登录';
+                setTimeout(triggerBlink, Math.random() * 3000 + 1000);
+            }
+            setTimeout(triggerBlink, 2000);
+
+            // Random Smile for Orange Character
+            function triggerSmile() {
+                const orangeChar = document.querySelector('.char-orange');
+                if (orangeChar && !orangeChar.classList.contains('shy')) {
+                    const mouth = orangeChar.querySelector('.mouth');
+                    if (mouth) {
+                        mouth.classList.add('smile');
+                        setTimeout(() => {
+                            mouth.classList.remove('smile');
+                        }, 5000); // Smile for 5 seconds
+                    }
+                }
+                // Random interval between 6 and 11 seconds
+                setTimeout(triggerSmile, Math.random() * 5000 + 6000);
+            }
+            setTimeout(triggerSmile, 3000);
+
+            // 3. Username Interaction (Typing & Reading & Expecting)
+            if(usernameInput) {
+                usernameInput.addEventListener('focus', () => {
+                    chars.forEach(char => {
+                        char.classList.remove('shy');
+                        char.classList.remove('leaning-right');
+                        char.classList.add('expecting'); // Moved from Password
+                    });
+                });
+
+                usernameInput.addEventListener('blur', () => {
+                    chars.forEach(char => {
+                        char.classList.remove('expecting');
+                    });
+                });
+
+                usernameInput.addEventListener('input', (e) => {
+                    const val = e.target.value;
+                    const inputRect = usernameInput.getBoundingClientRect();
+                    // Estimate cursor position based on length (rough approx)
+                    const cursorX = inputRect.left + 10 + (val.length * 8); 
+                    const cursorY = inputRect.top + inputRect.height / 2;
+
+                    moveEyes(cursorX, cursorY);
+
+                    // Bobbing animation
+                    chars.forEach(char => {
+                        char.classList.add('typing');
+                        // Remove class to restart animation if needed, or just let CSS loop
+                    });
+                    
+                    // Clear typing class after a short delay
+                    clearTimeout(window.typingTimer);
+                    window.typingTimer = setTimeout(() => {
+                        chars.forEach(char => char.classList.remove('typing'));
+                    }, 400);
+                });
+            }
+
+            // 4. Password Interaction (Leaning Right)
+            if(passwordInput) {
+                passwordInput.addEventListener('focus', () => {
+                    chars.forEach(char => {
+                        char.classList.add('leaning-right'); // New animation
+                        char.classList.remove('shy');
+                        char.classList.remove('expecting');
+                    });
+                });
+
+                passwordInput.addEventListener('blur', () => {
+                    chars.forEach(char => {
+                        char.classList.remove('leaning-right');
+                        if (passwordInput.type === 'text') {
+                            char.classList.add('shy');
+                        } else {
+                            char.classList.remove('shy');
+                        }
+                    });
+                });
+            }
+
+            // 5. Toggle Password (Shy)
+            if(togglePassword) {
+                togglePassword.addEventListener('click', () => {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    
+                    togglePassword.classList.toggle('fa-eye');
+                    togglePassword.classList.toggle('fa-eye-slash');
+
+                    if (type === 'text') {
+                        // Show Password -> Shy
+                        chars.forEach(char => {
+                            char.classList.add('shy');
+                            char.classList.remove('expecting');
+                        });
+                    } else {
+                        // Hide Password -> Back to normal
+                        chars.forEach(char => {
+                            char.classList.remove('shy');
+                            if (document.activeElement === passwordInput) {
+                                char.classList.add('expecting');
+                            }
+                        });
+                    }
+                });
             }
         });
+    </script>
 
-        // 记住的用户名
-        const rememberedUser = localStorage.getItem('remembered-user');
-        if (rememberedUser) {
-            document.getElementById('username').value = rememberedUser;
-            document.getElementById('remember').checked = true;
+    <script>
+        /**
+         * 用户认证系统 (Inlined for file:// access)
+         */
+        const API_PORT = 5024;
+        const API_BASE = `http://127.0.0.1:${API_PORT}/api`;
+
+        const USER_ROLES = {
+            ADMIN: 'admin',
+            TEACHER: 'teacher',
+            STUDENT: 'student'
+        };
+
+        const PERMISSIONS = {
+            USER_CREATE: 'user:create',
+            USER_READ: 'user:read',
+            USER_UPDATE: 'user:update',
+            USER_DELETE: 'user:delete',
+            COURSE_CREATE: 'course:create',
+            COURSE_READ: 'course:read',
+            COURSE_UPDATE: 'course:update',
+            COURSE_DELETE: 'course:delete',
+            ASSIGNMENT_CREATE: 'assignment:create',
+            ASSIGNMENT_READ: 'assignment:read',
+            ASSIGNMENT_UPDATE: 'assignment:update',
+            ASSIGNMENT_DELETE: 'assignment:delete',
+            ASSIGNMENT_SUBMIT: 'assignment:submit',
+            ASSIGNMENT_GRADE: 'assignment:grade'
+        };
+
+        const ROLE_PERMISSIONS = {
+            [USER_ROLES.ADMIN]: [
+                PERMISSIONS.USER_CREATE, PERMISSIONS.USER_READ, PERMISSIONS.USER_UPDATE, PERMISSIONS.USER_DELETE,
+                PERMISSIONS.COURSE_CREATE, PERMISSIONS.COURSE_READ, PERMISSIONS.COURSE_UPDATE, PERMISSIONS.COURSE_DELETE,
+                PERMISSIONS.ASSIGNMENT_CREATE, PERMISSIONS.ASSIGNMENT_READ, PERMISSIONS.ASSIGNMENT_UPDATE,
+                PERMISSIONS.ASSIGNMENT_DELETE, PERMISSIONS.ASSIGNMENT_SUBMIT, PERMISSIONS.ASSIGNMENT_GRADE
+            ],
+            [USER_ROLES.TEACHER]: [
+                PERMISSIONS.USER_READ, PERMISSIONS.USER_UPDATE,
+                PERMISSIONS.COURSE_READ, PERMISSIONS.COURSE_UPDATE,
+                PERMISSIONS.ASSIGNMENT_CREATE, PERMISSIONS.ASSIGNMENT_READ,
+                PERMISSIONS.ASSIGNMENT_UPDATE, PERMISSIONS.ASSIGNMENT_DELETE, PERMISSIONS.ASSIGNMENT_GRADE
+            ],
+            [USER_ROLES.STUDENT]: [
+                PERMISSIONS.USER_UPDATE,
+                PERMISSIONS.COURSE_READ,
+                PERMISSIONS.ASSIGNMENT_READ, PERMISSIONS.ASSIGNMENT_SUBMIT
+            ]
+        };
+
+        class UserAuth {
+            constructor() {
+                this.currentUser = null;
+                this.initializeAuth();
+            }
+
+            initializeAuth() {
+                const savedUser = sessionStorage.getItem('current-user');
+                if (savedUser) {
+                    try {
+                        this.currentUser = JSON.parse(savedUser);
+                    } catch (error) {
+                        console.error('解析用户信息失败:', error);
+                        sessionStorage.removeItem('current-user');
+                    }
+                }
+            }
+
+            async register(userData) {
+                // Note: In this simplified version, we might skip admin check for public registration
+                // or keep it if the backend enforces it. The original code checked for admin role locally.
+                // For public registration (Sign Up button), we usually don't need to be admin.
+                // However, the original code had: if (!this.hasRole(USER_ROLES.ADMIN)) ...
+                // But the new registration modal calls /api/public/register directly in handleRegister function.
+                // So this method might not be used by the new modal.
+                // We'll keep it as is for compatibility.
+                
+                const { username, password, email, role, fullName, studentId = null, employeeId = null } = userData;
+
+                try {
+                    if (!this.hasRole(USER_ROLES.ADMIN)) {
+                        // For public registration, we should use a different method or endpoint.
+                        // But here we just return error as per original logic.
+                        return {
+                            success: false,
+                            message: '只有管理员可以创建用户'
+                        };
+                    }
+
+                    const requestData = {
+                        username: username.trim(),
+                        email: email.trim(),
+                        password: password,
+                        fullName: fullName.trim(),
+                        role: role,
+                        studentId: studentId?.trim() || null,
+                        employeeId: employeeId?.trim() || null
+                    };
+
+                    const response = await fetch(`${API_BASE}/users/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(requestData)
+                    });
+
+                    const result = await response.json();
+                    if (result.success && result.user) {
+                        this.createUserRegistrationNotification(result.user);
+                    }
+                    return result;
+
+                } catch (error) {
+                    console.error('注册过程中发生错误:', error);
+                    return { success: false, message: error.message || '注册过程中发生错误' };
+                }
+            }
+
+            async login(username, password) {
+                console.log('🔐 开始登录请求...');
+                const startTime = Date.now();
+                
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+                    const response = await fetch(`${API_BASE}/users/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: username.trim(), password: password }),
+                        signal: controller.signal
+                    });
+
+                    clearTimeout(timeoutId);
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.currentUser = result.user;
+                        const userStr = JSON.stringify(this.currentUser);
+                        sessionStorage.setItem('current-user', userStr);
+                        localStorage.setItem('currentUser', userStr);
+                        localStorage.setItem('oj-current-user', userStr);
+                        return { success: true, message: result.message, user: this.currentUser };
+                    } else {
+                        return { success: false, message: result.message };
+                    }
+                } catch (error) {
+                    console.error('登录错误:', error);
+                    if (error.name === 'AbortError') return { success: false, message: '登录超时' };
+                    return { success: false, message: '登录失败: ' + error.message };
+                }
+            }
+
+            logout() {
+                this.currentUser = null;
+                sessionStorage.removeItem('current-user');
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('oj-current-user');
+            }
+
+            isLoggedIn() { return !!this.currentUser; }
+            getCurrentUser() { return this.currentUser; }
+            
+            hasPermission(permission) {
+                if (!this.currentUser) return false;
+                const userPermissions = ROLE_PERMISSIONS[this.currentUser.role] || [];
+                return userPermissions.includes(permission);
+            }
+
+            hasRole(role) { return this.currentUser && this.currentUser.role === role; }
+
+            async createUserRegistrationNotification(newUser) {
+                try {
+                    const notificationManager = window.notificationManager;
+                    if (!notificationManager) return;
+
+                    const adminResponse = await fetch(`${API_BASE}/users/query`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            sql: 'SELECT id, username, email, full_name, role FROM users WHERE role = ?',
+                            params: ['admin']
+                        })
+                    });
+
+                    if (adminResponse.ok) {
+                        const adminResult = await adminResponse.json();
+                        const admins = adminResult.data || [];
+                        for (const admin of admins) {
+                            await notificationManager.createNotification('user_registration', admin.id, {
+                                username: newUser.username,
+                                full_name: newUser.fullName,
+                                role: newUser.role,
+                                senderId: this.currentUser?.id,
+                                relatedType: 'user',
+                                relatedId: newUser.id
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error('创建通知失败:', error);
+                }
+            }
         }
 
-        // 用户注册
-        document.getElementById('registerLink').addEventListener('click', (e) => {
-            e.preventDefault();
-            showRegisterModal();
-        });
+        // --- Main Logic ---
+        const auth = new UserAuth();
+        const loginForm = document.getElementById('loginForm');
+        const errorMsg = document.getElementById('error-msg');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const chars = document.querySelectorAll('.char');
 
-        // 忘记密码
-        document.querySelector('.forgot-link').addEventListener('click', (e) => {
-            e.preventDefault();
-            alert('请联系管理员重置密码');
-        });
+        // Login Logic
+        if(loginForm) {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = usernameInput.value;
+                const password = passwordInput.value;
+                const btn = loginForm.querySelector('.btn-primary');
+                
+                btn.textContent = '登录中...';
+                btn.disabled = true;
+                errorMsg.style.display = 'none';
 
-        // 显示注册模态框
+                try {
+                    const result = await auth.login(username, password);
+                    if (result.success) {
+                        // Success animation
+                        chars.forEach((char, index) => {
+                            setTimeout(() => {
+                                char.style.transform = 'translateY(20px)'; // Anticipation
+                                setTimeout(() => {
+                                    char.style.transition = 'transform 0.5s cubic-bezier(0.6, -0.28, 0.735, 0.045)';
+                                    char.style.transform = 'translateY(100vh)'; // Fall down or fly up? Let's fly up happily
+                                    char.style.transform = 'translateY(-120vh)';
+                                }, 200);
+                            }, index * 100);
+                        });
+                        
+                        setTimeout(() => {
+                            window.location.href = 'main.html';
+                        }, 100);
+                    } else {
+                        errorMsg.textContent = result.message || '登录失败';
+                        errorMsg.style.display = 'block';
+                        btn.textContent = '登录';
+                        btn.disabled = false;
+                        
+                        // Shake animation
+                        loginForm.style.animation = 'shake 0.5s';
+                        setTimeout(() => loginForm.style.animation = '', 500);
+
+                        // Character Shake Animation
+                        chars.forEach(char => {
+                            char.classList.add('error-shake');
+                            setTimeout(() => char.classList.remove('error-shake'), 400);
+                        });
+                    }
+                } catch (err) {
+                    console.error(err);
+                    errorMsg.textContent = '发生错误';
+                    errorMsg.style.display = 'block';
+                    btn.textContent = '登录';
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        // Language Switcher Logic
+        const langSwitch = document.querySelector('.lang-switch');
+        const langBtn = document.getElementById('lang-btn');
+        let currentLang = 'zh';
+        
+        const translations = {
+            zh: {
+                welcome: '欢迎回来！',
+                usernameLabel: '用户名 / 邮箱',
+                usernamePlaceholder: '请输入用户名',
+                passwordLabel: '密码',
+                remember: '30天内免登录',
+                forgot: '忘记密码？',
+                login: '登录',
+                signupText: '还没有账号？',
+                signupLink: '注册',
+                loggingIn: '登录中...',
+                loginFailed: '登录失败',
+                error: '发生错误'
+            },
+            en: {
+                welcome: 'Welcome Back!',
+                usernameLabel: 'Username / Email',
+                usernamePlaceholder: 'Enter your username',
+                passwordLabel: 'Password',
+                remember: 'Remember for 30 days',
+                forgot: 'Forgot password?',
+                login: 'Log In',
+                signupText: "Don't have an account?",
+                signupLink: 'Sign Up',
+                loggingIn: 'Logging in...',
+                loginFailed: 'Login failed',
+                error: 'An error occurred'
+            }
+        };
+
+        if(langSwitch) {
+            langSwitch.addEventListener('click', () => {
+                currentLang = currentLang === 'zh' ? 'en' : 'zh';
+                if(langBtn) langBtn.textContent = currentLang === 'zh' ? 'EN' : '中文';
+                
+                const t = translations[currentLang];
+                const welcomeText = document.getElementById('welcome-text');
+                if(welcomeText) welcomeText.textContent = t.welcome;
+                
+                const labelUsername = document.getElementById('label-username');
+                if(labelUsername) labelUsername.textContent = t.usernameLabel;
+                
+                const usernameInput = document.getElementById('username');
+                if(usernameInput) usernameInput.placeholder = t.usernamePlaceholder;
+                
+                const labelPassword = document.getElementById('label-password');
+                if(labelPassword) labelPassword.textContent = t.passwordLabel;
+                
+                const labelRemember = document.getElementById('label-remember');
+                if(labelRemember) labelRemember.textContent = t.remember;
+                
+                const linkForgot = document.getElementById('link-forgot');
+                if(linkForgot) linkForgot.textContent = t.forgot;
+                
+                const btnLogin = document.getElementById('btn-login');
+                if(btnLogin) btnLogin.textContent = t.login;
+                
+                const textSignup = document.getElementById('text-signup');
+                if(textSignup) textSignup.textContent = t.signupText;
+                
+                const linkSignup = document.getElementById('link-signup');
+                if(linkSignup) linkSignup.textContent = t.signupLink;
+            });
+        }
+
+        // Forgot Password Logic
+        const linkForgot = document.getElementById('link-forgot');
+        if(linkForgot) {
+            linkForgot.addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('请寻找管理员解决');
+            });
+        }
+
+        // Registration Logic
+        const linkSignup = document.getElementById('link-signup');
+        if(linkSignup) {
+            linkSignup.addEventListener('click', (e) => {
+                e.preventDefault();
+                showRegisterModal();
+            });
+        }
+
         function showRegisterModal() {
             const modalHtml = `
                 <div id="register-modal" class="register-modal">
@@ -902,9 +1294,9 @@
                         <button class="register-close" type="button">&times;</button>
                         <div class="register-body">
                             <form id="registerForm">
-                                <!-- 用户角色选择 -->
+                                <!-- Role Selection -->
                                 <div class="form-group">
-                                    <label class="form-label">选择用户角色</label>
+                                    <label class="form-label" style="display:block; margin-bottom:8px; font-weight:600; color:#2d3436;">选择用户角色</label>
                                     <div class="role-toggle">
                                         <button type="button" class="role-option" data-role="student">学生</button>
                                         <button type="button" class="role-option" data-role="teacher">教师</button>
@@ -912,59 +1304,59 @@
                                     <input type="hidden" name="role" required>
                                 </div>
 
-                                <!-- 基本信息 -->
-                                <div class="form-group">
-                                    <label class="form-label">真实姓名 *</label>
-                                    <input type="text" name="fullName" required class="form-input" placeholder="请输入您的真实姓名">
+                                <!-- Basic Info -->
+                                <div class="input-group">
+                                    <label style="display:block; margin-bottom:8px; font-weight:600; color:#2d3436;">真实姓名 *</label>
+                                    <input type="text" name="fullName" required style="width:100%; padding:12px; border:2px solid #dfe6e9; border-radius:8px;" placeholder="请输入您的真实姓名">
                                 </div>
-                                <div class="form-group">
-                                    <label class="form-label">登录用户名 *</label>
-                                    <input type="text" name="username" required class="form-input" placeholder="请输入登录用户名">
+                                <div class="input-group" style="margin-top:15px;">
+                                    <label style="display:block; margin-bottom:8px; font-weight:600; color:#2d3436;">登录用户名 *</label>
+                                    <input type="text" name="username" required style="width:100%; padding:12px; border:2px solid #dfe6e9; border-radius:8px;" placeholder="请输入登录用户名">
                                 </div>
-                                <div class="form-group">
-                                    <label class="form-label">登录密码 *</label>
-                                    <input type="password" name="password" required class="form-input" placeholder="至少6位密码">
+                                <div class="input-group" style="margin-top:15px;">
+                                    <label style="display:block; margin-bottom:8px; font-weight:600; color:#2d3436;">登录密码 *</label>
+                                    <input type="password" name="password" required style="width:100%; padding:12px; border:2px solid #dfe6e9; border-radius:8px;" placeholder="至少6位密码">
                                 </div>
-                                <div class="form-group">
-                                    <label class="form-label">确认密码 *</label>
-                                    <input type="password" name="confirmPassword" required class="form-input" placeholder="请再次输入密码">
+                                <div class="input-group" style="margin-top:15px;">
+                                    <label style="display:block; margin-bottom:8px; font-weight:600; color:#2d3436;">确认密码 *</label>
+                                    <input type="password" name="confirmPassword" required style="width:100%; padding:12px; border:2px solid #dfe6e9; border-radius:8px;" placeholder="请再次输入密码">
                                 </div>
-                                <div class="form-group">
-                                    <label class="form-label">邮箱地址</label>
-                                    <input type="email" name="email" class="form-input" placeholder="可选，用于找回密码">
+                                <div class="input-group" style="margin-top:15px;">
+                                    <label style="display:block; margin-bottom:8px; font-weight:600; color:#2d3436;">邮箱地址</label>
+                                    <input type="email" name="email" style="width:100%; padding:12px; border:2px solid #dfe6e9; border-radius:8px;" placeholder="可选，用于找回密码">
                                 </div>
 
-                                <!-- 学生专用字段 -->
+                                <!-- Student Fields -->
                                 <div id="student-fields" class="role-fields" style="display: none;">
                                     <div class="role-fields-title">学生信息</div>
-                                    <div class="form-group">
-                                        <label class="form-label">学号</label>
-                                        <input type="text" name="studentId" class="form-input" placeholder="请输入学号">
+                                    <div class="input-group">
+                                        <label style="display:block; margin-bottom:8px; font-weight:600; color:#2d3436;">学号</label>
+                                        <input type="text" name="studentId" style="width:100%; padding:12px; border:2px solid #dfe6e9; border-radius:8px;" placeholder="请输入学号">
                                     </div>
-                                    <div class="form-group">
-                                        <label class="form-label">专业</label>
-                                        <input type="text" name="major" class="form-input" placeholder="请输入专业">
+                                    <div class="input-group" style="margin-top:15px;">
+                                        <label style="display:block; margin-bottom:8px; font-weight:600; color:#2d3436;">专业</label>
+                                        <input type="text" name="major" style="width:100%; padding:12px; border:2px solid #dfe6e9; border-radius:8px;" placeholder="请输入专业">
                                     </div>
-                                    <div class="form-group">
-                                        <label class="form-label">年级</label>
-                                        <input type="text" name="grade" class="form-input" placeholder="请输入年级">
+                                    <div class="input-group" style="margin-top:15px;">
+                                        <label style="display:block; margin-bottom:8px; font-weight:600; color:#2d3436;">年级</label>
+                                        <input type="text" name="grade" style="width:100%; padding:12px; border:2px solid #dfe6e9; border-radius:8px;" placeholder="请输入年级">
                                     </div>
                                 </div>
 
-                                <!-- 教师专用字段 -->
+                                <!-- Teacher Fields -->
                                 <div id="teacher-fields" class="role-fields" style="display: none;">
                                     <div class="role-fields-title">教师信息</div>
-                                    <div class="form-group">
-                                        <label class="form-label">工号</label>
-                                        <input type="text" name="employeeId" class="form-input" placeholder="请输入工号">
+                                    <div class="input-group">
+                                        <label style="display:block; margin-bottom:8px; font-weight:600; color:#2d3436;">工号</label>
+                                        <input type="text" name="employeeId" style="width:100%; padding:12px; border:2px solid #dfe6e9; border-radius:8px;" placeholder="请输入工号">
                                     </div>
-                                    <div class="form-group">
-                                        <label class="form-label">院系</label>
-                                        <input type="text" name="department" class="form-input" placeholder="请输入院系">
+                                    <div class="input-group" style="margin-top:15px;">
+                                        <label style="display:block; margin-bottom:8px; font-weight:600; color:#2d3436;">院系</label>
+                                        <input type="text" name="department" style="width:100%; padding:12px; border:2px solid #dfe6e9; border-radius:8px;" placeholder="请输入院系">
                                     </div>
-                                    <div class="form-group">
-                                        <label class="form-label">电话</label>
-                                        <input type="tel" name="phone" class="form-input" placeholder="请输入电话号码">
+                                    <div class="input-group" style="margin-top:15px;">
+                                        <label style="display:block; margin-bottom:8px; font-weight:600; color:#2d3436;">电话</label>
+                                        <input type="tel" name="phone" style="width:100%; padding:12px; border:2px solid #dfe6e9; border-radius:8px;" placeholder="请输入电话号码">
                                     </div>
                                 </div>
 
@@ -980,24 +1372,19 @@
 
             document.body.insertAdjacentHTML('beforeend', modalHtml);
 
-            // 显示模态框
+            // Show Modal
             setTimeout(() => {
                 document.getElementById('register-modal').classList.add('show');
             }, 10);
 
-            // 关闭按钮事件监听
+            // Event Listeners
             const closeBtn = document.querySelector('.register-close');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', closeRegisterModal);
-            }
+            if (closeBtn) closeBtn.addEventListener('click', closeRegisterModal);
 
-            // 取消按钮事件监听
             const cancelBtn = document.querySelector('.btn-cancel');
-            if (cancelBtn) {
-                cancelBtn.addEventListener('click', closeRegisterModal);
-            }
+            if (cancelBtn) cancelBtn.addEventListener('click', closeRegisterModal);
 
-            // 角色切换逻辑
+            // Role Toggle
             const roleOptions = document.querySelectorAll('.role-option');
             const roleInput = document.querySelector('input[name="role"]');
             const studentFields = document.getElementById('student-fields');
@@ -1005,14 +1392,10 @@
 
             roleOptions.forEach(option => {
                 option.addEventListener('click', () => {
-                    // 移除所有active类
                     roleOptions.forEach(opt => opt.classList.remove('active'));
-                    // 添加active类到当前选项
                     option.classList.add('active');
-                    // 设置隐藏的role值
                     roleInput.value = option.dataset.role;
 
-                    // 显示对应字段
                     const role = option.dataset.role;
                     if (role === 'student') {
                         studentFields.style.display = 'block';
@@ -1024,14 +1407,10 @@
                 });
             });
 
-            // 表单提交处理
-            document.getElementById('registerForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                handleRegister(e);
-            });
+            // Form Submit
+            document.getElementById('registerForm').addEventListener('submit', handleRegister);
         }
 
-        // 关闭注册模态框
         function closeRegisterModal() {
             const modal = document.getElementById('register-modal');
             if (modal) {
@@ -1042,50 +1421,18 @@
             }
         }
 
-        // 显示注册成功提示
-        function showRegisterSuccess(username, password) {
-            // 使用自定义提示而不是alert，确保显示
-            const successModal = document.createElement('div');
-            successModal.id = 'success-modal';
-            successModal.style.cssText = `
-                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-                background: rgba(0,0,0,0.7); display: flex; align-items: center;
-                justify-content: center; z-index: 10000;
-            `;
-            successModal.innerHTML = `
-                <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-                    padding: 30px; border-radius: 16px; text-align: center; max-width: 400px;
-                    border: 1px solid rgba(52, 152, 219, 0.3); box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
-                    <div style="font-size: 60px; margin-bottom: 20px;">✅</div>
-                    <h2 style="color: #3498db; margin-bottom: 15px; font-size: 24px;">注册成功！</h2>
-                    <p style="color: #bdc3c7; margin-bottom: 10px;">用户名：<strong style="color: #fff;">${username}</strong></p>
-                    <p style="color: #bdc3c7; margin-bottom: 20px;">密码：<strong style="color: #fff;">${password}</strong></p>
-                    <p style="color: #95a5a6; font-size: 14px; margin-bottom: 20px;">您现在可以使用此账号登录系统</p>
-                    <button onclick="document.getElementById('success-modal').remove()" 
-                        style="background: linear-gradient(135deg, #3498db, #2980b9); color: white;
-                        border: none; padding: 12px 40px; border-radius: 8px; cursor: pointer;
-                        font-size: 16px; font-weight: bold;">
-                        确定
-                    </button>
-                </div>
-            `;
-            document.body.appendChild(successModal);
-        }
-
-        // 处理用户注册
         async function handleRegister(event) {
+            event.preventDefault();
             const formData = new FormData(event.target);
             const password = formData.get('password');
             const confirmPassword = formData.get('confirmPassword');
             const role = formData.get('role');
 
-            // 验证角色是否选择
             if (!role) {
                 alert('请先选择用户角色（学生或教师）！');
                 return;
             }
 
-            // 验证密码
             if (password !== confirmPassword) {
                 alert('两次输入的密码不一致！');
                 return;
@@ -1093,12 +1440,6 @@
 
             if (password.length < 6) {
                 alert('密码长度至少6位！');
-                return;
-            }
-
-            // 验证必填字段
-            if (!formData.get('fullName') || !formData.get('username')) {
-                alert('请填写真实姓名和用户名！');
                 return;
             }
 
@@ -1116,7 +1457,6 @@
                 phone: formData.get('phone') || ''
             };
 
-            // 禁用提交按钮防止重复提交
             const submitBtn = document.querySelector('.btn-submit');
             if (submitBtn) {
                 submitBtn.disabled = true;
@@ -1124,66 +1464,33 @@
             }
 
             try {
-                console.log('📤 发送注册请求...', JSON.stringify(userData));
-                console.log('📍 当前页面地址:', window.location.href);
-                
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => {
-                    console.log('⏰ 请求超时，中止...');
-                    controller.abort();
-                }, 15000);
-                
                 const response = await fetch('http://127.0.0.1:5024/api/public/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(userData),
-                    signal: controller.signal,
-                    mode: 'cors'
+                    body: JSON.stringify(userData)
                 });
                 
-                clearTimeout(timeoutId);
-                console.log('📥 响应状态:', response.status);
-                console.log('📥 响应头:', [...response.headers.entries()]);
-                
-                const text = await response.text();
-                console.log('📥 原始响应:', text);
-                
-                let result;
-                try {
-                    result = JSON.parse(text);
-                } catch(e) {
-                    console.error('JSON解析失败:', e);
-                    throw new Error('服务器返回无效JSON: ' + text.substring(0, 100));
-                }
-                console.log('📋 返回数据:', result);
+                const result = await response.json();
 
-                // 恢复按钮
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.textContent = '立即注册';
                 }
 
                 if (result.success) {
-                    console.log('✅ 注册成功!');
-                    // 关闭注册框
-                    const modal = document.getElementById('register-modal');
-                    if (modal) modal.remove();
-                    
-                    // 直接用 alert 显示
-                    window.alert('注册成功！\n\n用户名：' + userData.username + '\n密码：' + userData.password + '\n\n现在可以登录了');
+                    closeRegisterModal();
+                    alert('注册成功！\n\n用户名：' + userData.username + '\n密码：' + userData.password + '\n\n现在可以登录了');
                 } else {
-                    console.log('❌ 注册失败:', result.message);
-                    window.alert('注册失败：' + (result.message || '未知错误'));
+                    alert('注册失败：' + (result.message || '未知错误'));
                 }
                 
             } catch (error) {
-                console.error('❌ 请求错误:', error);
-                // 恢复按钮
+                console.error('Register Error:', error);
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.textContent = '立即注册';
                 }
-                window.alert('注册失败：' + error.message);
+                alert('注册失败：' + error.message);
             }
         }
     </script>

@@ -15,57 +15,72 @@ export const JsVisualizer: React.FC<JsVisualizerProps> = ({ code }) => {
     if (!containerRef.current) return;
 
     // Clear previous content
-    if (containerRef.current) {
-      containerRef.current.innerHTML = '';
-    }
+    containerRef.current.innerHTML = '';
     setError(null);
 
     // Check if code is empty
     if (!code || code.trim() === '') {
-      setError('请输入D3.js可视化代码');
       return;
     }
 
-    try {
-      // Use a safer approach to evaluate user code
-      // Wrap user code in a function and provide necessary variables
-      const userCode = `
-        (function() {
-          const container = arguments[0];
-          const d3 = arguments[1];
-          const Recharts = arguments[2];
-          const React = arguments[3];
-          const ReactDom = arguments[4];
+    const executeCode = () => {
+      try {
+        // Check for Babel
+        if (!(window as any).Babel) {
+          throw new Error('Babel is not loaded. Please refresh the page.');
+        }
 
-          try {
-            ${code}
-            return { success: true };
-          } catch (e) {
-            return { success: false, error: e.message };
-          }
-        })
-      `;
+        // Transform code using Babel to support JSX
+        let transformedCode = '';
+        try {
+          const result = (window as any).Babel.transform(code, {
+            presets: ['react'],
+            filename: 'user_code.js',
+          });
+          transformedCode = result.code;
+        } catch (transformError: any) {
+          throw new Error(`Syntax Error: ${transformError.message}`);
+        }
 
-      // Create the function
-      const renderFunc = eval(userCode);
+        // Wrap user code in a function and provide necessary variables
+        const userCodeWrapper = `
+          (function(container, d3, Recharts, React, ReactDom) {
+            try {
+              ${transformedCode}
+              return { success: true };
+            } catch (e) {
+              console.error("Runtime Error in Visualizer:", e);
+              return { success: false, error: e.message };
+            }
+          })
+        `;
 
-      // Execute with proper error handling
-      const result = renderFunc(
-        containerRef.current,
-        d3,
-        Recharts,
-        React,
-        ReactDom
-      );
+        // Execute
+        // eslint-disable-next-line no-eval
+        const renderFunc = eval(userCodeWrapper);
+        
+        const result = renderFunc(
+          containerRef.current,
+          d3,
+          Recharts,
+          React,
+          ReactDom
+        );
 
-      if (result && !result.success) {
-        throw new Error(result.error);
+        if (result && !result.success) {
+          throw new Error(result.error);
+        }
+
+      } catch (err: any) {
+        console.error("Visualization Error:", err);
+        setError(err.message || 'Error executing visualization script');
       }
+    };
 
-    } catch (err: any) {
-      console.error("Visualization Error:", err);
-      setError(err.message || 'Error executing visualization script');
-    }
+    // Small timeout to ensure DOM is ready and Babel is loaded
+    const timer = setTimeout(executeCode, 0);
+
+    return () => clearTimeout(timer);
   }, [code]);
 
   return (

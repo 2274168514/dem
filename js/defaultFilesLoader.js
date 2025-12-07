@@ -58,6 +58,12 @@ R,4.5,70000,中等,低,数据统计/分析`,
      */
     loadDefaultFiles() {
         try {
+            // 作业模式下跳过加载默认文件
+            if (this.fileManager && this.fileManager.isAssignmentMode) {
+                console.log('📋 作业模式：跳过加载默认文件');
+                return;
+            }
+            
             console.log('🚀 开始加载默认文件...');
 
             Object.entries(this.defaultFiles).forEach(([filePath, content]) => {

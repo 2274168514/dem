@@ -6,10 +6,16 @@ import { ArrowLeft, Save, Link, Image, Video, MonitorPlay, Bot, ChevronDown, X }
 import { Button } from './Button';
 import { ResizablePanel } from './ResizablePanel';
 import { i18n, Language } from '../i18n';
+import { uploadPPTToSupabase } from '../lib/supabase';
 
 // API 端口配置
 const API_PORT = 5024;
-const API_BASE = `http://localhost:${API_PORT}`;
+// 动态获取 API Base，支持局域网访问
+const getApiBase = () => {
+  const hostname = window.location.hostname;
+  return `http://${hostname}:${API_PORT}`;
+};
+const API_BASE = getApiBase();
 
 interface EditorProps {
   initialContent: string;
@@ -23,6 +29,36 @@ interface EditorProps {
 
 export const Editor: React.FC<EditorProps> = ({ initialContent, onSave, onSaveOnly, onSaveWithoutExport, onCancel, isDarkMode = true, onThemeToggle }) => {
   const [content, setContent] = useState(initialContent);
+  // 使用 ref 追踪最新的 content，解决异步回调中的闭包陈旧问题
+  const contentRef = React.useRef(content);
+  
+  // 每次 content 更新时同步 ref
+  useEffect(() => {
+    contentRef.current = content;
+  }, [content]);
+
+  // 用于在渲染后恢复光标位置
+  const [pendingCursorPos, setPendingCursorPos] = useState<number | null>(null);
+
+  // 监听 pendingCursorPos 变化，在渲染完成后设置光标
+  useEffect(() => {
+    if (pendingCursorPos !== null) {
+      const textarea = document.getElementById('markdown-editor') as HTMLTextAreaElement;
+      if (textarea) {
+        // 使用 requestAnimationFrame 确保在浏览器重绘后执行，避免布局抖动
+        requestAnimationFrame(() => {
+          textarea.focus();
+          textarea.setSelectionRange(pendingCursorPos, pendingCursorPos);
+          // 滚动到光标位置，确保可见
+          textarea.blur();
+          textarea.focus();
+          textarea.setSelectionRange(pendingCursorPos, pendingCursorPos);
+        });
+      }
+      setPendingCursorPos(null);
+    }
+  }, [pendingCursorPos, content]); // 依赖 content 确保在内容更新后执行
+
   const [currentLang, setCurrentLang] = React.useState<Language>(i18n.current);
   const [showAI, setShowAI] = useState(false);
   
@@ -111,6 +147,29 @@ export const Editor: React.FC<EditorProps> = ({ initialContent, onSave, onSaveOn
     return unsubscribe;
   }, []);
 
+  // 监听 PPT 上传成功事件，自动替换 blob URL 为公网 URL
+  useEffect(() => {
+    const handlePPTUploadSuccess = (e: any) => {
+      const { originalUrl, publicUrl } = e.detail;
+      console.log('Editor received upload success:', originalUrl, '->', publicUrl);
+      
+      setContent(prevContent => {
+        if (prevContent.includes(originalUrl)) {
+          const newContent = prevContent.replace(originalUrl, publicUrl);
+          // 更新历史记录
+          if (historyRef.current.length > 0) {
+             historyRef.current[historyIndexRef.current] = newContent;
+          }
+          return newContent;
+        }
+        return prevContent;
+      });
+    };
+
+    window.addEventListener('ppt-upload-success', handlePPTUploadSuccess);
+    return () => window.removeEventListener('ppt-upload-success', handlePPTUploadSuccess);
+  }, []);
+
   // 保存当前光标位置（在点击按钮前调用）
   const saveCursorPosition = () => {
     const textarea = document.getElementById('markdown-editor') as HTMLTextAreaElement;
@@ -121,21 +180,16 @@ export const Editor: React.FC<EditorProps> = ({ initialContent, onSave, onSaveOn
 
   // 在指定位置插入文本
   const insertTextAtPosition = (textToInsert: string, position: number) => {
-    const text = content;
+    // 使用 contentRef 获取最新内容，避免闭包陈旧问题
+    const text = contentRef.current;
     const before = text.substring(0, position);
     const after = text.substring(position);
     
     const newContent = before + textToInsert + after;
     updateContentWithHistory(newContent);
     
-    // Defer focus back to textarea
-    setTimeout(() => {
-      const textarea = document.getElementById('markdown-editor') as HTMLTextAreaElement;
-      if (textarea) {
-        textarea.focus();
-        textarea.selectionStart = textarea.selectionEnd = position + textToInsert.length;
-      }
-    }, 0);
+    // 使用 state 触发光标更新，确保在 React 渲染完成后执行
+    setPendingCursorPos(position + textToInsert.length);
   };
 
   const insertText = (textToInsert: string) => {
@@ -144,18 +198,16 @@ export const Editor: React.FC<EditorProps> = ({ initialContent, onSave, onSaveOn
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const text = content;
+    // 使用 contentRef 获取最新内容
+    const text = contentRef.current;
     const before = text.substring(0, start);
     const after = text.substring(end, text.length);
     
     const newContent = before + textToInsert + after;
     updateContentWithHistory(newContent);
     
-    // Defer focus back to textarea
-    setTimeout(() => {
-      textarea.focus();
-      textarea.selectionStart = textarea.selectionEnd = start + textToInsert.length;
-    }, 0);
+    // 使用 state 触发光标更新
+    setPendingCursorPos(start + textToInsert.length);
   };
 
   // 插入链接
@@ -187,9 +239,11 @@ export const Editor: React.FC<EditorProps> = ({ initialContent, onSave, onSaveOn
     
     // 如果有选中文本，替换它；否则在光标位置插入
     if (linkSelectedText) {
-      const currentContent = textarea.value;
+      const currentContent = contentRef.current;
       const newContent = currentContent.substring(0, textarea.selectionStart) + markdown + currentContent.substring(textarea.selectionEnd);
       updateContentWithHistory(newContent);
+      // 使用 state 触发光标更新
+      setPendingCursorPos(textarea.selectionStart + markdown.length);
     } else {
       insertTextAtPosition(markdown, cursorPos);
     }
@@ -264,12 +318,8 @@ svg.selectAll('rect')
             const finalContent = currentContent.replace(uploadingText, markdown);
             updateContentWithHistory(finalContent);
 
-            // 恢复光标位置到图片之后
-            setTimeout(() => {
-              currentTextarea.focus();
-              const newPosition = cursorPos + markdown.length;
-              currentTextarea.selectionStart = currentTextarea.selectionEnd = newPosition;
-            }, 0);
+            // 使用 state 触发光标更新
+            setPendingCursorPos(cursorPos + markdown.length);
 
           } else {
             const errorData = await response.json().catch(() => ({ message: '未知错误' }));
@@ -330,12 +380,8 @@ svg.selectAll('rect')
             const finalContent = currentContent.replace(uploadingText, markdown);
             updateContentWithHistory(finalContent);
 
-            // 恢复光标位置到视频之后
-            setTimeout(() => {
-              currentTextarea.focus();
-              const newPosition = cursorPos + markdown.length;
-              currentTextarea.selectionStart = currentTextarea.selectionEnd = newPosition;
-            }, 0);
+            // 使用 state 触发光标更新
+            setPendingCursorPos(cursorPos + markdown.length);
 
           } else {
             const errorData = await response.json().catch(() => ({ message: '未知错误' }));
@@ -355,7 +401,7 @@ svg.selectAll('rect')
     input.click();
   };
 
-  // 插入PPT - 上传到服务器
+  // 插入PPT - 上传到 Supabase
   const handleInsertPPT = async () => {
     // 先保存光标位置（在点击按钮时焦点还在文本框上）
     saveCursorPosition();
@@ -364,60 +410,31 @@ svg.selectAll('rect')
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.ppt,.pptx,.odp,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation';
+    input.style.display = 'none'; // 隐藏 input
+    document.body.appendChild(input); // 添加到文档中以确保兼容性
 
-    input.addEventListener('change', async function(e) {
-      const file = (e.target as HTMLInputElement).files?.[0];
+    input.onchange = async function(e: Event) {
+      const target = e.target as HTMLInputElement;
+      const file = target.files?.[0];
+      
       if (file) {
-        // 显示上传中提示（在保存的光标位置插入）
-        const uploadingText = `[正在上传PPT: ${file.name}...]`;
-        insertTextAtPosition(uploadingText, cursorPos);
-
-        try {
-          // 创建FormData
-          const formData = new FormData();
-          formData.append('file', file);
-
-          // 上传文件
-          const response = await fetch(`${API_BASE}/api/upload`, {
-            method: 'POST',
-            body: formData
-          });
-
-          if (response.ok) {
-            const result = await response.json();
-
-            // 获取当前内容并替换上传提示为实际PPT链接
-            const currentTextarea = document.getElementById('markdown-editor') as HTMLTextAreaElement;
-            const currentContent = currentTextarea.value;
-
-            // 插入PPT内嵌预览（替换上传提示）
-            const pptUrl = `/uploads/mdresource/${result.filename}`;
-            // 使用自定义的 ppt-embed 标签格式
-            const markdown = `<div class="ppt-embed" data-src="${pptUrl}" data-name="${file.name}"></div>`;
-            const finalContent = currentContent.replace(uploadingText, markdown);
-            updateContentWithHistory(finalContent);
-
-            // 恢复光标位置到PPT链接之后
-            setTimeout(() => {
-              currentTextarea.focus();
-              const newPosition = cursorPos + markdown.length;
-              currentTextarea.selectionStart = currentTextarea.selectionEnd = newPosition;
-            }, 0);
-
-          } else {
-            const errorData = await response.json().catch(() => ({ message: '未知错误' }));
-            throw new Error(errorData.message || `上传失败 (${response.status})`);
-          }
-        } catch (error: any) {
-          console.error('上传错误:', error);
-          // 删除上传提示
-          const currentTextarea = document.getElementById('markdown-editor') as HTMLTextAreaElement;
-          const currentContent = currentTextarea.value;
-          updateContentWithHistory(currentContent.replace(uploadingText, ''));
-          alert('PPT上传失败: ' + (error.message || '请重试'));
-        }
+        // 1. 创建 Blob URL 用于立即预览
+        const blobUrl = URL.createObjectURL(file);
+        
+        // 2. 立即插入 Blob URL，让预览区显示 PPTXViewer 组件
+        // PPTXViewer 组件会自动检测到 Blob URL 并显示"正在上传到云端"的进度条 UI
+        // 上传完成后，PPTXViewer 会触发 'ppt-upload-success' 事件，Editor 会自动替换 URL
+        const pptEmbedCode = `<div class="ppt-embed" data-src="${blobUrl}" data-name="${file.name}"></div>`;
+        insertTextAtPosition(pptEmbedCode, cursorPos);
       }
-    });
+      // 清理 input
+      document.body.removeChild(input);
+    };
+
+    // 处理取消选择的情况
+    input.oncancel = () => {
+        document.body.removeChild(input);
+    };
 
     input.click();
   };

@@ -5,6 +5,58 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Permissions-Policy" content="unload=(), browsing-topics=(), idle-detection=(), magnetometer=(), accelerometer=(), gyroscope=(), camera=(), microphone=(), geolocation=(), payment=(), interest-cohort=()">
   <title>Web 实时编译器 · VSCode 风格</title>
+  
+  <!-- 立即恢复用户信息 - 在页面加载前执行 -->
+  <script>
+    (function() {
+      console.log('🔄 editor.html: 开始检查用户信息...');
+      
+      // 尝试从多个来源恢复用户信息到 sessionStorage
+      const sessionUser = sessionStorage.getItem('current-user');
+      console.log('🔍 当前 sessionStorage:', sessionUser);
+      
+      if (!sessionUser || sessionUser === '{}' || sessionUser === 'null' || sessionUser === 'undefined') {
+        console.log('🔄 sessionStorage 中没有用户信息，尝试从 localStorage 恢复...');
+        
+        // 来源1: localStorage 的 currentUser
+        const localUser = localStorage.getItem('currentUser');
+        console.log('🔍 localStorage.currentUser:', localUser ? '有数据' : '无数据');
+        
+        if (localUser && localUser !== '{}' && localUser !== 'null' && localUser !== 'undefined') {
+          sessionStorage.setItem('current-user', localUser);
+          console.log('✅ 从 localStorage.currentUser 恢复用户信息成功');
+        } else {
+          // 来源2: localStorage 的 oj-current-user
+          const ojUser = localStorage.getItem('oj-current-user');
+          console.log('🔍 localStorage.oj-current-user:', ojUser ? '有数据' : '无数据');
+          
+          if (ojUser && ojUser !== '{}' && ojUser !== 'null' && ojUser !== 'undefined') {
+            sessionStorage.setItem('current-user', ojUser);
+            console.log('✅ 从 localStorage.oj-current-user 恢复用户信息成功');
+          } else {
+            console.warn('⚠️ 没有找到任何用户信息！');
+          }
+        }
+      } else {
+        console.log('✅ sessionStorage 中已有用户信息');
+      }
+      
+      // 验证最终结果
+      const finalUser = sessionStorage.getItem('current-user');
+      if (finalUser && finalUser !== '{}' && finalUser !== 'null') {
+        try {
+          const user = JSON.parse(finalUser);
+          console.log('✅ 用户信息已就绪:', user.fullName || user.username);
+          // 同步备份到 localStorage
+          localStorage.setItem('oj-current-user', finalUser);
+          localStorage.setItem('currentUser', finalUser);
+        } catch (e) {
+          console.error('❌ 解析用户信息失败:', e);
+        }
+      }
+    })();
+  </script>
+  
   <!-- 使用本地字体替代方案 -->
   <style>
     @font-face {
@@ -39,6 +91,15 @@
       <ul class="file-tree" id="file-tree">
         <!-- 文件树将由JavaScript动态生成 -->
       </ul>
+      <!-- 底部返回按钮 -->
+      <div class="sidebar-footer">
+        <button id="assignment-back-btn" class="sidebar-back-btn" onclick="goBackToAssignment()" style="display: none;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          <span data-i18n="back">返回</span>
+        </button>
+      </div>
     </aside>
 
     <!-- 资源管理器和编辑区之间的分隔栏 -->
@@ -68,7 +129,6 @@
         <div class="breadcrumbs"></div>
         <div class="command-actions">
           <!-- 作业导航按钮 -->
-          <button id="assignment-back-btn" class="template-button" onclick="goBackToAssignment()" data-i18n="back-to-assignment">🔙 返回</button>
           <button id="assignment-submit-btn" class="template-button" onclick="submitAssignment()" data-i18n="submit-assignment">📋 提交</button>
 
           <button id="ai-assistant-btn" class="ai-button" data-i18n="ai-programming">🤖 AI编程</button>
@@ -292,6 +352,72 @@
   <script type="module" src="js/languageManager.js"></script>
   <script type="module" src="js/main.js?v=20251116-52"></script>
 
+  <!-- 语言切换按钮备用绑定 -->
+  <script>
+    // 确保语言切换按钮工作
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        /* 
+        // 已由 languageManager.js 统一处理，避免冲突
+        const langBtn = document.getElementById('lang-toggle-btn');
+        const langSpan = document.getElementById('current-lang');
+        
+        if (langBtn && !langBtn._langBound) {
+          langBtn._langBound = true;
+          langBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // 切换语言
+            let currentLang = localStorage.getItem('preferred-language') || 'zh';
+            let newLang = currentLang === 'zh' ? 'en' : 'zh';
+            
+            // 保存新语言
+            localStorage.setItem('preferred-language', newLang);
+            localStorage.setItem('language', newLang);
+            localStorage.setItem('global-language-preference', newLang);
+            
+            // 更新按钮显示
+            if (langSpan) {
+              langSpan.textContent = newLang === 'zh' ? '中' : 'EN';
+            }
+            
+            // 如果有语言管理器，调用它的更新方法
+            if (window.languageManager && window.languageManager.updateLanguage) {
+              window.languageManager.currentLang = newLang;
+              window.languageManager.updateLanguage();
+            }
+            
+            // 触发语言变更事件
+            window.dispatchEvent(new CustomEvent('languageChanged', {
+              detail: { language: newLang }
+            }));
+            
+            console.log('🌐 语言已切换为:', newLang);
+          };
+          console.log('✅ 语言按钮备用事件已绑定');
+        }
+        */
+        
+        // 确保提交按钮工作
+        const submitBtn = document.getElementById('assignment-submit-btn');
+        if (submitBtn && !submitBtn._submitBound) {
+          submitBtn._submitBound = true;
+          submitBtn.onclick = function(e) {
+            e.preventDefault();
+            console.log('📤 提交按钮点击 (备用绑定)');
+            if (typeof window.submitAssignment === 'function') {
+              window.submitAssignment();
+            } else {
+              alert('提交功能正在加载，请稍后重试');
+            }
+          };
+          console.log('✅ 提交按钮备用事件已绑定');
+        }
+      }, 100);
+    });
+  </script>
+
   <!-- 调试脚本 (仅在开发时使用) -->
   <script>
     // 页面加载时清理重复的按钮
@@ -322,30 +448,34 @@
       const mode = urlParams.get('mode');
       const isAssignmentMode = !!(assignmentId || studentId || mode);
 
-      // 如果是作业模式，强制显示按钮
-      if (isAssignmentMode) {
-        const backBtn = document.getElementById('assignment-back-btn');
-        const submitBtn = document.getElementById('assignment-submit-btn');
+      // 获取当前用户
+      const currentUser = JSON.parse(sessionStorage.getItem('current-user') || localStorage.getItem('oj-current-user') || '{}');
+      const isLoggedIn = !!currentUser.role;
 
-        if (backBtn) {
-          backBtn.style.display = 'inline-block';
-          backBtn.style.visibility = 'visible';
-          backBtn.style.opacity = '1';
-        }
-        if (submitBtn) {
-          submitBtn.style.display = 'inline-block';
-          submitBtn.style.visibility = 'visible';
-          submitBtn.style.opacity = '1';
-        }
-
-        console.log('🔧 强制显示作业按钮', {
-          assignmentId,
-          studentId,
-          mode,
-          backBtn: !!backBtn,
-          submitBtn: !!submitBtn
-        });
+      // 如果用户已登录，显示返回按钮
+      const backBtn = document.getElementById('assignment-back-btn');
+      if (backBtn && isLoggedIn) {
+        backBtn.style.display = 'flex';
+        backBtn.style.visibility = 'visible';
+        backBtn.style.opacity = '1';
       }
+
+      // 如果是作业模式，显示提交按钮
+      const submitBtn = document.getElementById('assignment-submit-btn');
+      if (submitBtn && isAssignmentMode) {
+        submitBtn.style.display = 'inline-block';
+        submitBtn.style.visibility = 'visible';
+        submitBtn.style.opacity = '1';
+      }
+
+      console.log('🔧 强制显示按钮', {
+        isLoggedIn,
+        assignmentId,
+        studentId,
+        mode,
+        backBtn: !!backBtn,
+        submitBtn: !!submitBtn
+      });
     }
 
     function cleanupDuplicateButtons() {
@@ -379,10 +509,9 @@
       let showBackButton = false;
       let showSubmitButton = false;
 
-      // 返回按钮：老师在任何情况下都可以看到，学生只在作业模式时看到
-      if (isTeacher) {
-        showBackButton = true;
-      } else if (isAssignmentMode && !currentRepoState) {
+      // 返回按钮：登录用户都可以看到（老师、学生、管理员）
+      // 只有在代码库案例模式下才隐藏
+      if (currentUser.role && !currentRepoState) {
         showBackButton = true;
       }
 
@@ -405,14 +534,14 @@
       }
 
       // 调试日志
-      console.log('🎛️ 按钮显示状态:', {
-        isTeacher,
-        isAssignmentMode,
-        currentRepoState,
-        showBackButton,
-        showSubmitButton,
-        userRole: currentUser.role
-      });
+      // console.log('🎛️ 按钮显示状态:', {
+      //   isTeacher,
+      //   isAssignmentMode,
+      //   currentRepoState,
+      //   showBackButton,
+      //   showSubmitButton,
+      //   userRole: currentUser.role
+      // });
 
       lastCodeRepoCaseState = currentRepoState;
     }
@@ -465,102 +594,180 @@
       }
     };
 
-    window.submitAssignment = function() {
+    window.submitAssignment = async function() {
       console.log('📤 提交按钮被点击');
+      
+      // 添加调试信息
+      console.log('🔍 调试: sessionStorage current-user =', sessionStorage.getItem('current-user'));
+      console.log('🔍 调试: localStorage oj-current-user =', localStorage.getItem('oj-current-user'));
+      console.log('🔍 调试: URL =', window.location.href);
 
       try {
-        // 检查fileManager是否存在
-        if (!window.fileManager) {
-          console.error('编辑器未初始化完成，请稍后再试');
-          return;
-        }
-
         // 收集当前编辑器中的文件
         const files = {};
 
         try {
-          // 尝试使用Map方式遍历
-          if (typeof window.fileManager.files.forEach === 'function') {
-            window.fileManager.files.forEach((fileData, fileName) => {
-              files[fileName] = fileData.content;
-            });
+          // 从编辑器获取最新内容
+          if (window.editors) {
+            // editors 有两种可能的结构：
+            // 1. editors.getValue('html') 函数方式
+            // 2. editors.html.getValue() 对象方式
+            
+            if (typeof window.editors.getValue === 'function') {
+              // 函数调用方式
+              const htmlContent = window.editors.getValue('html');
+              const cssContent = window.editors.getValue('css');
+              const jsContent = window.editors.getValue('js');
+              
+              if (htmlContent) files['html/index.html'] = htmlContent;
+              if (cssContent) files['css/style.css'] = cssContent;
+              if (jsContent) files['js/main.js'] = jsContent;
+            } else {
+              // 对象属性方式
+              if (window.editors.html && typeof window.editors.html.getValue === 'function') {
+                files['html/index.html'] = window.editors.html.getValue();
+              }
+              if (window.editors.css && typeof window.editors.css.getValue === 'function') {
+                files['css/style.css'] = window.editors.css.getValue();
+              }
+              if (window.editors.js && typeof window.editors.js.getValue === 'function') {
+                files['js/main.js'] = window.editors.js.getValue();
+              }
+            }
           }
-          // 如果是普通对象，使用Object.entries遍历
-          else if (window.fileManager.files && typeof window.fileManager.files === 'object') {
-            Object.entries(window.fileManager.files).forEach(([fileName, fileData]) => {
-              if (fileData && typeof fileData.content === 'string') {
-                files[fileName] = fileData.content;
+          
+          // 备用方案：从fileManager获取
+          if (Object.keys(files).length === 0 && window.fileManager && window.fileManager.files) {
+            Object.entries(window.fileManager.files).forEach(([fileName, fileContent]) => {
+              if (typeof fileContent === 'string') {
+                files[fileName] = fileContent;
+              } else if (fileContent && typeof fileContent.content === 'string') {
+                files[fileName] = fileContent.content;
               }
             });
           }
         } catch (error) {
           console.error('收集文件时出错:', error);
-          // 备用方案：直接从编辑器获取内容
-          if (window.editors && window.editors.html) {
-            files['html/index.html'] = window.editors.html.getValue();
-          }
-          if (window.editors && window.editors.css) {
-            files['css/style.css'] = window.editors.css.getValue();
-          }
-          if (window.editors && window.editors.js) {
-            files['js/main.js'] = window.editors.js.getValue();
-          }
         }
 
         console.log('收集到的文件:', Object.keys(files));
+        console.log('文件内容长度:', Object.keys(files).map(k => `${k}: ${(files[k] || '').length}字符`));
+
+        // 检查是否收集到文件
+        if (Object.keys(files).length === 0) {
+          showSuccessNotification('无法获取编辑器内容，请刷新页面后重试', 'error');
+          return;
+        }
 
         // 获取当前用户和作业信息
         const currentUser = JSON.parse(sessionStorage.getItem('current-user') || localStorage.getItem('oj-current-user') || '{}');
         const urlParams = new URLSearchParams(window.location.search);
-        const assignmentId = urlParams.get('assignment') || 'demo-assignment';
+        const assignmentId = urlParams.get('assignment');
+        
+        console.log('🔍 调试: currentUser =', currentUser);
+        console.log('🔍 调试: assignmentId =', assignmentId);
 
-        console.log('📤 提交作业调试信息:', {
-          assignmentId,
-          currentUser,
-          urlAssignmentId: urlParams.get('assignment')
+        if (!assignmentId) {
+          showSuccessNotification('无法获取作业ID，请从作业列表进入', 'error');
+          return;
+        }
+
+        if (!currentUser.id) {
+          showSuccessNotification('请先登录', 'error');
+          return;
+        }
+
+        console.log('📤 提交作业:', { assignmentId, studentId: currentUser.id, filesCount: Object.keys(files).length });
+
+        // 保存到本地存储（作为备用方案）
+        try {
+          const submissionData = {
+              id: `sub_${Date.now()}`,
+              assignmentId: assignmentId,
+              studentId: currentUser.id,
+              studentName: currentUser.fullName || currentUser.username,
+              files: Object.entries(files).map(([name, content]) => ({ name, content, type: 'text' })),
+              submittedAt: new Date().toISOString(),
+              status: 'submitted'
+          };
+          const submissions = JSON.parse(localStorage.getItem('oj-assignment-submissions') || '[]');
+          submissions.push(submissionData);
+          localStorage.setItem('oj-assignment-submissions', JSON.stringify(submissions));
+
+          // 同时也更新自动保存记录，确保提交时的状态被保存
+          localStorage.setItem(`assignment-autosave-${assignmentId}`, JSON.stringify({
+              files: files,
+              savedAt: new Date().toISOString()
+          }));
+          console.log('💾 提交前已强制更新本地保存记录');
+        } catch (e) {
+          console.error('本地保存失败:', e);
+        }
+
+        // 显示提交中提示
+        showSuccessNotification('正在提交作业...', 'info');
+
+        // 调用 API 提交作业到数据库
+        const response = await fetch('http://127.0.0.1:5024/api/assignments/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            assignmentId: assignmentId,
+            studentId: currentUser.id,
+            studentName: currentUser.fullName || currentUser.username,
+            studentEmail: currentUser.email,
+            files: files,
+            content: ''
+          })
         });
 
-        // 创建提交数据
-        const submission = {
-          id: `sub_${Date.now()}`,
-          assignmentId: assignmentId === 'demo-assignment' ? '111' : assignmentId, // 如果是默认值，使用111作业的ID
-          studentId: currentUser.id || currentUser.username,
-          studentName: currentUser.fullName || currentUser.username,
-          submittedAt: new Date().toISOString(),
-          files: files,
-          status: 'submitted'
-        };
+        const result = await response.json();
 
-        // 保存到本地存储作为备份
-        const existingSubmissions = JSON.parse(localStorage.getItem('oj-assignment-submissions') || '[]');
-        existingSubmissions.push(submission);
-        localStorage.setItem('oj-assignment-submissions', JSON.stringify(existingSubmissions));
+        if (result.success) {
+          console.log('✅ 作业提交成功:', result);
+          showSuccessNotification('作业提交成功！老师可以查看和批改你的作业了。');
 
-        console.log('作业提交成功:', submission);
-
-        // 显示一个小的成功提示，然后自动返回
-        showSuccessNotification('作业提交成功！老师可以查看和批改你的作业了。');
-
-        // 延迟1秒后自动返回到作业列表页面
-        setTimeout(() => {
-          window.goBackToAssignment();
-        }, 1000);
+          // 延迟1.5秒后自动返回
+          setTimeout(() => {
+            window.goBackToAssignment();
+          }, 1500);
+        } else {
+          console.error('❌ 作业提交失败:', result.message);
+          showSuccessNotification('提交失败: ' + result.message, 'error');
+        }
 
       } catch (error) {
         console.error('提交失败:', error);
-        showSuccessNotification('提交失败，请重试');
+        showSuccessNotification('提交失败，请检查网络连接后重试', 'error');
       }
     };
 
-    // 显示成功提示的函数
-    function showSuccessNotification(message) {
+    // 显示提示的函数
+    function showSuccessNotification(message, type = 'success') {
+      // 移除已有的提示
+      const existingNotification = document.querySelector('.editor-notification');
+      if (existingNotification) {
+        existingNotification.remove();
+      }
+
+      // 颜色配置
+      const colors = {
+        success: '#10b981',
+        error: '#ef4444',
+        info: '#3b82f6',
+        warning: '#f59e0b'
+      };
+
       // 创建提示元素
       const notification = document.createElement('div');
+      notification.className = 'editor-notification';
       notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
-        background: #10b981;
+        background: ${colors[type] || colors.success};
         color: white;
         padding: 12px 20px;
         border-radius: 8px;
@@ -696,6 +903,51 @@
           if (modal) {
             modal.style.display = 'none';
           }
+        }
+
+        // 自动保存功能
+        function setupAutoSave(assignmentId) {
+          if (!assignmentId) return;
+          console.log('💾 初始化自动保存功能, 作业ID:', assignmentId);
+          
+          // 定时保存 (每5秒)
+          setInterval(() => {
+            try {
+                const files = {};
+                if (window.editors) {
+                    // 尝试获取编辑器内容
+                    if (typeof window.editors.getValue === 'function') {
+                      const html = window.editors.getValue('html');
+                      if (html) files['html/index.html'] = html;
+                      const css = window.editors.getValue('css');
+                      if (css) files['css/style.css'] = css;
+                      const js = window.editors.getValue('js');
+                      if (js) files['js/main.js'] = js;
+                    } else {
+                       if (window.editors.html && typeof window.editors.html.getValue === 'function') 
+                          files['html/index.html'] = window.editors.html.getValue();
+                       if (window.editors.css && typeof window.editors.css.getValue === 'function') 
+                          files['css/style.css'] = window.editors.css.getValue();
+                       if (window.editors.js && typeof window.editors.js.getValue === 'function') 
+                          files['js/main.js'] = window.editors.js.getValue();
+                    }
+                }
+                
+                if (Object.keys(files).length > 0) {
+                    localStorage.setItem(`assignment-autosave-${assignmentId}`, JSON.stringify({
+                        files: files,
+                        savedAt: new Date().toISOString()
+                    }));
+                }
+            } catch (e) { console.error('自动保存失败:', e); }
+          }, 5000);
+        }
+
+        // 初始化自动保存
+        const urlParams = new URLSearchParams(window.location.search);
+        const assignmentId = urlParams.get('assignment');
+        if (assignmentId) {
+            setupAutoSave(assignmentId);
         }
 
         function handleCodeRepoSave() {

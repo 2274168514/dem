@@ -1000,6 +1000,7 @@ export class Router {
     try {
       const { courseManager } = await import('./courseManager.js');
       const { assignmentManager } = await import('./assignmentManager.js');
+      if (assignmentManager.init) await assignmentManager.init();
       const currentUser = userAuth.getCurrentUser();
 
       const teacherCourses = courseManager.getTeacherCourses(currentUser.id);
@@ -1024,6 +1025,107 @@ export class Router {
       document.getElementById('pending-grading').textContent = pendingGrading;
     } catch (error) {
       console.error('加载教师统计数据失败:', error);
+    }
+  }
+
+  /**
+   * 加载教师课程内容
+   */
+  async loadTeacherCoursesContent() {
+    const mainContent = document.getElementById('main-content') || document.querySelector('.main-area');
+    if (!mainContent) return;
+
+    try {
+      const { courseManager } = await import('./courseManager.js');
+      const currentUser = userAuth.getCurrentUser();
+      const courses = courseManager.getTeacherCourses(currentUser.id);
+
+      mainContent.innerHTML = `
+        <div class="p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">我的课程</h1>
+            <button onclick="showAddCourseModal()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+              创建课程
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            ${courses.length > 0 ? courses.map(course => `
+              <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">${course.name}</h3>
+                <p class="text-gray-600 text-sm mb-4">${course.code}</p>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-gray-500">${course.enrolledStudents.length} 学生</span>
+                  <button onclick="router.navigate('/teacher/courses/${course.id}')" class="text-blue-600 hover:text-blue-800">查看详情</button>
+                </div>
+              </div>
+            `).join('') : '<p class="text-gray-500 col-span-3">暂无课程</p>'}
+          </div>
+        </div>
+      `;
+    } catch (error) {
+      console.error('加载教师课程失败:', error);
+    }
+  }
+
+  /**
+   * 加载教师作业内容
+   */
+  async loadTeacherAssignmentsContent() {
+    const mainContent = document.getElementById('main-content') || document.querySelector('.main-area');
+    if (!mainContent) return;
+
+    try {
+      const { assignmentManager } = await import('./assignmentManager.js');
+      if (assignmentManager.init) await assignmentManager.init();
+      const assignments = assignmentManager.getAssignments();
+
+      mainContent.innerHTML = `
+        <div class="p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">作业管理</h1>
+            <button onclick="showCreateAssignmentModal()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+              创建作业
+            </button>
+          </div>
+          <div class="bg-white rounded-lg shadow overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">作业名称</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">截止日期</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                ${assignments.length > 0 ? assignments.map(assignment => `
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">${assignment.title}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-500">${new Date(assignment.deadline).toLocaleDateString()}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        assignment.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                      }">
+                        ${assignment.status === 'published' ? '已发布' : '草稿'}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button onclick="editAssignment('${assignment.id}')" class="text-indigo-600 hover:text-indigo-900 mr-3">编辑</button>
+                      <button onclick="deleteAssignment('${assignment.id}')" class="text-red-600 hover:text-red-900">删除</button>
+                    </td>
+                  </tr>
+                `).join('') : '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">暂无作业</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    } catch (error) {
+      console.error('加载教师作业失败:', error);
     }
   }
 
@@ -1168,6 +1270,7 @@ export class Router {
     try {
       const { courseManager } = await import('./courseManager.js');
       const { assignmentManager } = await import('./assignmentManager.js');
+      if (assignmentManager.init) await assignmentManager.init();
       const currentUser = userAuth.getCurrentUser();
 
       const studentCourses = courseManager.getStudentCourses(currentUser.id);
@@ -1191,6 +1294,158 @@ export class Router {
       document.getElementById('average-grade').textContent = averageGrade;
     } catch (error) {
       console.error('加载学生统计数据失败:', error);
+    }
+  }
+
+  /**
+   * 加载学生课程内容
+   */
+  async loadStudentCoursesContent() {
+    const mainContent = document.getElementById('main-content') || document.querySelector('.main-area');
+    if (!mainContent) return;
+
+    try {
+      const { courseManager } = await import('./courseManager.js');
+      const currentUser = userAuth.getCurrentUser();
+      const courses = courseManager.getStudentCourses(currentUser.id);
+
+      mainContent.innerHTML = `
+        <div class="p-6">
+          <h1 class="text-2xl font-bold text-gray-900 mb-6">我的课程</h1>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            ${courses.length > 0 ? courses.map(course => `
+              <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">${course.name}</h3>
+                <p class="text-gray-600 text-sm mb-4">${course.code}</p>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-gray-500">${course.teacherName}</span>
+                  <button onclick="router.navigate('/student/courses/${course.id}')" class="text-blue-600 hover:text-blue-800">进入课程</button>
+                </div>
+              </div>
+            `).join('') : '<p class="text-gray-500 col-span-3">暂无课程</p>'}
+          </div>
+        </div>
+      `;
+    } catch (error) {
+      console.error('加载学生课程失败:', error);
+    }
+  }
+
+  /**
+   * 加载学生作业内容
+   */
+  async loadStudentAssignmentsContent() {
+    const mainContent = document.getElementById('main-content') || document.querySelector('.main-area');
+    if (!mainContent) return;
+
+    try {
+      const { assignmentManager } = await import('./assignmentManager.js');
+      if (assignmentManager.init) await assignmentManager.init();
+      const currentUser = userAuth.getCurrentUser();
+      const assignments = assignmentManager.getAssignments().filter(a => a.status === 'published');
+      const submissions = assignmentManager.getStudentSubmissions(currentUser.id);
+
+      mainContent.innerHTML = `
+        <div class="p-6">
+          <h1 class="text-2xl font-bold text-gray-900 mb-6">我的作业</h1>
+          <div class="bg-white rounded-lg shadow overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">作业名称</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">截止日期</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                ${assignments.length > 0 ? assignments.map(assignment => {
+                  const submission = submissions.find(s => s.assignmentId === assignment.id);
+                  const status = submission ? submission.status : 'pending';
+                  const statusText = status === 'submitted' ? '已提交' : status === 'graded' ? '已评分' : '未提交';
+                  const statusClass = status === 'submitted' ? 'bg-blue-100 text-blue-800' : status === 'graded' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+                  
+                  return `
+                    <tr>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${assignment.title}</div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-500">${new Date(assignment.deadline).toLocaleDateString()}</div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                          ${statusText}
+                        </span>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="window.assignmentInterface.viewAssignment('${assignment.id}')" class="text-indigo-600 hover:text-indigo-900">
+                          ${status === 'pending' ? '去完成' : '查看'}
+                        </button>
+                      </td>
+                    </tr>
+                  `;
+                }).join('') : '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">暂无作业</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    } catch (error) {
+      console.error('加载学生作业失败:', error);
+    }
+  }
+
+  /**
+   * 加载学生成绩内容
+   */
+  async loadStudentGradesContent() {
+    const mainContent = document.getElementById('main-content') || document.querySelector('.main-area');
+    if (!mainContent) return;
+
+    try {
+      const { assignmentManager } = await import('./assignmentManager.js');
+      if (assignmentManager.init) await assignmentManager.init();
+      const currentUser = userAuth.getCurrentUser();
+      const submissions = assignmentManager.getStudentSubmissions(currentUser.id).filter(s => s.status === 'graded');
+
+      mainContent.innerHTML = `
+        <div class="p-6">
+          <h1 class="text-2xl font-bold text-gray-900 mb-6">成绩查询</h1>
+          <div class="bg-white rounded-lg shadow overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">作业名称</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">提交时间</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">成绩</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">评语</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                ${submissions.length > 0 ? submissions.map(submission => `
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">${submission.assignmentTitle || '未知作业'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-500">${new Date(submission.submittedAt).toLocaleString()}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="text-sm font-bold text-gray-900">${submission.grade || submission.finalScore}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      ${submission.feedback || '-'}
+                    </td>
+                  </tr>
+                `).join('') : '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">暂无成绩</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    } catch (error) {
+      console.error('加载学生成绩失败:', error);
     }
   }
 
@@ -2185,6 +2440,7 @@ export class Router {
     if (!pageContent) return;
 
     const { assignmentManager } = await import('./assignmentManager.js');
+    if (assignmentManager.init) await assignmentManager.init();
     const assignments = assignmentManager.getAllAssignments();
 
     pageContent.innerHTML = `

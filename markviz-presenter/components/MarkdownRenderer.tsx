@@ -925,9 +925,10 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       if (className === 'ppt-embed') {
         const dataSrc = props['data-src'] || '';
         const dataName = props['data-name'] || 'PPT 文件';
+        const resolvedSrc = resolveMediaUrl(dataSrc);
 
         // 使用 PPTXViewer 组件通过 Microsoft Office Online 预览
-        return <PPTXViewer src={dataSrc} name={dataName} />;
+        return <PPTXViewer src={resolvedSrc} name={dataName} />;
       }
       
       // 默认 div 渲染

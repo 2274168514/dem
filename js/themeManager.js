@@ -127,6 +127,15 @@ export class ThemeManager {
         // 设置HTML属性用于CSS选择器
         root.setAttribute('data-theme', themeName);
 
+        // 兼容旧的CSS类名
+        if (themeName === 'light') {
+            document.body.classList.add('light-theme');
+            root.classList.add('light-theme');
+        } else {
+            document.body.classList.remove('light-theme');
+            root.classList.remove('light-theme');
+        }
+
         // 更新按钮状态
         this.updateToggleButton(themeName);
 

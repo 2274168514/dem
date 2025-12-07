@@ -2092,7 +2092,7 @@
           };
 
           // 调用API更新学生信息
-          const response = await fetch(`http://localhost:5025/api/users/${studentId}`, {
+          const response = await fetch(`http://localhost:5024/api/users/${studentId}`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -2755,7 +2755,7 @@
 
           // 添加请求测试
           console.log('🌐 开始请求API...');
-          const response = await fetch('http://localhost:5025/api/courses');
+          const response = await fetch('http://localhost:5024/api/courses');
           console.log('📡 API响应状态:', response.status);
           console.log('📡 API响应头:', response.headers);
 
@@ -2828,7 +2828,7 @@
             return [];
           }
 
-          const response = await fetch(`http://localhost:5025/api/courses?teacher_id=${this.currentUser.id}`);
+          const response = await fetch(`http://localhost:5024/api/courses?teacher_id=${this.currentUser.id}`);
           console.log('📡 教师课程API响应状态:', response.status);
 
           const result = await response.json();
@@ -2883,7 +2883,7 @@
         try {
           console.log('📡 从数据库获取作业列表...');
 
-          const response = await fetch('http://localhost:5025/api/assignments');
+          const response = await fetch('http://localhost:5024/api/assignments');
           console.log('📡 作业API响应状态:', response.status);
 
           const result = await response.json();
@@ -4069,7 +4069,7 @@
         if (confirm('确定要删除这门课程吗？删除后无法恢复！')) {
           try {
             // 调用后端API删除课程
-            const response = await fetch(`http://localhost:5025/api/courses/${courseId}`, {
+            const response = await fetch(`http://localhost:5024/api/courses/${courseId}`, {
               method: 'DELETE'
             });
 
@@ -4333,7 +4333,7 @@
             try {
               console.log('📝 正在为学生注册课程:', studentId, '课程ID:', courseId);
 
-              const response = await fetch(`http://localhost:5025/api/courses/${courseId}/enroll`, {
+              const response = await fetch(`http://localhost:5024/api/courses/${courseId}/enroll`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -4477,7 +4477,7 @@
       async updateCourse(courseId, courseData) {
         try {
           // 调用后端API更新课程
-          const response = await fetch(`http://localhost:5025/api/courses/${courseId}`, {
+          const response = await fetch(`http://localhost:5024/api/courses/${courseId}`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -4822,7 +4822,7 @@
           }
 
           // 调用数据库API创建作业
-          const response = await fetch(`http://localhost:5025/api/courses/${courseId}/assignments`, {
+          const response = await fetch(`http://localhost:5024/api/courses/${courseId}/assignments`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -4911,7 +4911,7 @@
           };
 
           // 使用新的API获取作业提交详情
-          const response = await fetch(`http://localhost:5025/api/assignments/${assignmentId}/submissions`);
+          const response = await fetch(`http://localhost:5024/api/assignments/${assignmentId}/submissions`);
           const result = await response.json();
 
           if (!result.success) {
@@ -5175,7 +5175,7 @@
             const teacherId = currentUser.id ? parseInt(currentUser.id) : null;
             console.log('🔍 教师ID:', teacherId, '类型:', typeof teacherId);
 
-            const response = await fetch(`http://localhost:5025/api/assignments/${assignmentId}/submissions/${submissionId}/grade`, {
+            const response = await fetch(`http://localhost:5024/api/assignments/${assignmentId}/submissions/${submissionId}/grade`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
@@ -6490,7 +6490,7 @@
        */
       async toggleUserStatus(userId, userType) {
         try {
-          const response = await fetch(`http://localhost:5025/api/users/${userId}/toggle-status`, {
+          const response = await fetch(`http://localhost:5024/api/users/${userId}/toggle-status`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -6551,7 +6551,7 @@
       // 添加缺失的用户管理方法
       async loadTeachers() {
         try {
-          const response = await fetch('http://localhost:5025/api/users?role=teacher');
+          const response = await fetch('http://localhost:5024/api/users?role=teacher');
           const result = await response.json();
 
           if (result.success && result.data) {
@@ -6567,7 +6567,7 @@
 
       async loadStudents() {
         try {
-          const response = await fetch('http://localhost:5025/api/users?role=student');
+          const response = await fetch('http://localhost:5024/api/users?role=student');
           const result = await response.json();
 
           if (result.success && result.data) {
@@ -6583,7 +6583,7 @@
 
       async loadAllStudents() {
         try {
-          const response = await fetch('http://localhost:5025/api/users?role=student&all=true');
+          const response = await fetch('http://localhost:5024/api/users?role=student&all=true');
           const result = await response.json();
 
           if (result.success && result.data) {
@@ -6797,7 +6797,7 @@
         };
 
         try {
-          const response = await fetch(`http://localhost:5025/api/users/${teacherId}`, {
+          const response = await fetch(`http://localhost:5024/api/users/${teacherId}`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -6943,7 +6943,7 @@
           };
 
           // 调用API更新学生信息
-          const response = await fetch(`http://localhost:5025/api/users/${studentId}`, {
+          const response = await fetch(`http://localhost:5024/api/users/${studentId}`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -7007,7 +7007,7 @@
 
         try {
           // 使用API获取课程数据
-          const response = await fetch('http://localhost:5025/api/courses');
+          const response = await fetch('http://localhost:5024/api/courses');
           const result = await response.json();
 
           if (!result.success) {
@@ -7217,11 +7217,11 @@
             <div class="glass-effect rounded-lg p-6">
               <div class="mb-4">
                 <div class="flex items-center space-x-4">
-                  <input type="text" id="teacher-student-search" placeholder="${t('searchStudents', '搜索学生...')}" class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white flex-1">
+                  <input type="text" id="teacher-student-search" placeholder="${t('searchStudents', '搜索学生...')}" data-i18n-placeholder="searchStudents" class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white flex-1">
                   <select id="teacher-student-filter" class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
-                    <option value="all">${t('allStatus', '全部状态')}</option>
-                    <option value="active">${t('active', '活跃')}</option>
-                    <option value="inactive">${t('inactive', '未激活')}</option>
+                    <option value="all" data-i18n="allStatus">${t('allStatus', '全部状态')}</option>
+                    <option value="active" data-i18n="studentActive">${t('studentActive', '已激活')}</option>
+                    <option value="inactive" data-i18n="studentInactive">${t('studentInactive', '未激活')}</option>
                   </select>
                 </div>
               </div>
@@ -7232,7 +7232,7 @@
                     course.enrolledStudents && course.enrolledStudents.includes(String(student.id))
                   );
                   return `
-                    <div class="bg-gray-700 bg-opacity-30 rounded-lg p-3">
+                    <div class="bg-gray-700 bg-opacity-30 rounded-lg p-3 student-item" data-name="${(student.full_name || student.username).toLowerCase()}" data-id="${(student.student_id || '').toLowerCase()}">
                       <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3 flex-1 min-w-0">
                           <!-- 姓名 -->
@@ -7270,6 +7270,57 @@
             </div>
           </div>
         `;
+
+        // 添加搜索功能
+        const searchInput = document.getElementById('teacher-student-search');
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const items = document.querySelectorAll('.student-item');
+            
+            items.forEach(item => {
+              const name = item.getAttribute('data-name') || '';
+              const id = item.getAttribute('data-id') || '';
+              
+              // 检查筛选状态
+              const filterSelect = document.getElementById('teacher-student-filter');
+              const filterValue = filterSelect ? filterSelect.value : 'all';
+              const statusSpan = item.querySelector('.text-green-400') ? 'active' : 'inactive';
+              const statusMatch = filterValue === 'all' || statusSpan === filterValue;
+
+              if ((name.includes(searchTerm) || id.includes(searchTerm)) && statusMatch) {
+                item.style.display = '';
+              } else {
+                item.style.display = 'none';
+              }
+            });
+          });
+        }
+
+        // 添加筛选功能
+        const filterSelect = document.getElementById('teacher-student-filter');
+        if (filterSelect) {
+          filterSelect.addEventListener('change', (e) => {
+            const filterValue = e.target.value;
+            const items = document.querySelectorAll('.student-item');
+            const searchInput = document.getElementById('teacher-student-search');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            
+            items.forEach(item => {
+              const statusSpan = item.querySelector('.text-green-400') ? 'active' : 'inactive';
+              const name = item.getAttribute('data-name') || '';
+              const id = item.getAttribute('data-id') || '';
+              
+              const searchMatch = searchTerm === '' || name.includes(searchTerm) || id.includes(searchTerm);
+              
+              if ((filterValue === 'all' || statusSpan === filterValue) && searchMatch) {
+                item.style.display = '';
+              } else {
+                item.style.display = 'none';
+              }
+            });
+          });
+        }
       }
 
       /**
@@ -7371,7 +7422,7 @@
         buttonElement.innerHTML = '<span class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>';
 
         try {
-          const response = await fetch(`http://localhost:5025/api/courses/${courseId}`, {
+          const response = await fetch(`http://localhost:5024/api/courses/${courseId}`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -7533,8 +7584,8 @@
         try {
           // 使用API获取作业和课程数据
           const [assignmentsResponse, coursesResponse] = await Promise.all([
-            fetch('http://localhost:5025/api/assignments'),
-            fetch('http://localhost:5025/api/courses')
+            fetch('http://localhost:5024/api/assignments'),
+            fetch('http://localhost:5024/api/courses')
           ]);
 
           const assignmentsResult = await assignmentsResponse.json();
@@ -8155,7 +8206,7 @@
 
         try {
           console.log('🔥 开始测试API...');
-          const response = await fetch('http://localhost:5025/api/courses');
+          const response = await fetch('http://localhost:5024/api/courses');
           console.log('🔥 API响应状态:', response.status);
           const data = await response.json();
           console.log('🔥 API完整响应:', data);
@@ -8198,7 +8249,7 @@
           window.open('http://localhost:3000', '_blank');
         } else {
           // 调用后端 API 启动 markviz-presenter
-          const startResponse = await fetch('http://localhost:5025/api/start-markviz', {
+          const startResponse = await fetch('http://localhost:5024/api/start-markviz', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'

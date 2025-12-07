@@ -22,6 +22,10 @@ async function uploadWithProgress(
   uniqueFilename: string,
   onProgress?: ProgressCallback
 ): Promise<void> {
+  console.log('🚀 开始上传文件:', uniqueFilename);
+  console.log('📦 目标 Bucket:', BUCKET_NAME);
+  console.log('🔗 Supabase URL:', SUPABASE_URL);
+
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     const url = `${SUPABASE_URL}/storage/v1/object/${BUCKET_NAME}/${uniqueFilename}`;
@@ -32,17 +36,26 @@ async function uploadWithProgress(
     xhr.setRequestHeader('x-upsert', 'false');
     
     // 监听上传进度
+    let lastProgress = -1;
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable && onProgress) {
         const progress = Math.round((event.loaded / event.total) * 100);
-        onProgress(progress);
+        // 仅在进度变化时更新，减少回调频率和日志输出
+        if (progress > lastProgress) {
+          lastProgress = progress;
+          // console.log(`📊 上传进度: ${progress}%`); // 减少控制台日志以提高性能
+          onProgress(progress);
+        }
       }
     };
     
     xhr.onload = () => {
+      console.log('📥 上传响应状态:', xhr.status);
       if (xhr.status >= 200 && xhr.status < 300) {
+        console.log('✅ 上传成功');
         resolve();
       } else {
+        console.error('❌ 上传失败响应:', xhr.responseText);
         try {
           const error = JSON.parse(xhr.responseText);
           reject(new Error(error.message || `上传失败: HTTP ${xhr.status}`));
@@ -53,6 +66,7 @@ async function uploadWithProgress(
     };
     
     xhr.onerror = () => {
+      console.error('❌ 网络错误');
       reject(new Error('网络错误'));
     };
     
@@ -80,7 +94,8 @@ export async function uploadPPTToSupabase(
     .replace(/\.[^/.]+$/, '') // 移除扩展名
     .replace(/[^a-zA-Z0-9_-]/g, '') // 移除非安全字符
     || 'presentation'; // 如果全是中文则使用默认名
-  const uniqueFilename = `${timestamp}_${safeName}.${ext}`;
+  // 将文件存放在 ppt-files 文件夹下
+  const uniqueFilename = `ppt-files/${timestamp}_${safeName}.${ext}`;
   
   // 使用带进度的上传
   await uploadWithProgress(file, uniqueFilename, onProgress);
@@ -104,7 +119,7 @@ export async function uploadLocalFileToSupabase(
   onProgress?: ProgressCallback
 ): Promise<string> {
   const API_BASE = 'http://localhost:5024';
-  const fullUrl = localPath.startsWith('http') ? localPath : `${API_BASE}${localPath}`;
+  const fullUrl = (localPath.startsWith('http') || localPath.startsWith('blob:')) ? localPath : `${API_BASE}${localPath}`;
   
   // 从本地服务器获取文件
   const response = await fetch(fullUrl);

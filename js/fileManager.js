@@ -53,21 +53,41 @@ export class FileManager {
   }
 
   init() {
+    this.checkAssignmentMode();
     this.generateFileTree();
-    this.loadStoredFiles();
+    this.loadStoredFiles(); // 这会根据模式决定是否调用 initDefaultFiles
     this.setupEvents();
-    this.initDefaultFiles();
+    // 注意：initDefaultFiles 已在 loadStoredFiles 中按需调用，不需要在此重复调用
+  }
+
+  /**
+   * 检查是否为作业模式
+   */
+  checkAssignmentMode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    this.isAssignmentMode = !!(urlParams.get('assignment'));
+    console.log('📋 作业模式:', this.isAssignmentMode);
   }
 
   generateFileTree() {
     this.fileTree.innerHTML = '';
 
-    const folders = [
-      { path: 'html', name: '📄 HTML', icon: '📄' },
-      { path: 'css', name: '🎨 CSS', icon: '🎨' },
-      { path: 'js', name: '⚡ JavaScript', icon: '⚡' },
-      { path: 'data', name: '📊 Data', icon: '📊' }
-    ];
+    // 根据模式选择文件夹结构
+    let folders;
+    if (this.isAssignmentMode) {
+      // 作业模式：只显示一个简单结构
+      folders = [
+        { path: 'html', name: '📄 HTML', icon: '📄' }
+      ];
+    } else {
+      // 普通模式：显示完整结构
+      folders = [
+        { path: 'html', name: '📄 HTML', icon: '📄' },
+        { path: 'css', name: '🎨 CSS', icon: '🎨' },
+        { path: 'js', name: '⚡ JavaScript', icon: '⚡' },
+        { path: 'data', name: '📊 Data', icon: '📊' }
+      ];
+    }
 
     const folderElements = {};
 
@@ -103,8 +123,9 @@ export class FileManager {
             contents.appendChild(fileEl);
           }
         });
-      } else {
-        // 如果是根目录文件，直接添加到文件树
+      } else if (!this.isAssignmentMode) {
+        // 仅在非作业模式下，如果是根目录文件，直接添加到文件树
+        // 作业模式下忽略不属于已定义文件夹的文件
         filesByFolder[folderPath].forEach(filePath => {
           const fileEl = this.createFile(filePath);
           this.fileTree.appendChild(fileEl);
@@ -114,13 +135,22 @@ export class FileManager {
 
     // 如果没有任何文件，添加默认文件
     if (filePaths.length === 0) {
-      const defaultFiles = [
-        { path: 'html/index.html', folder: 'html' },
-        { path: 'css/style.css', folder: 'css' },
-        { path: 'js/main.js', folder: 'js' },
-        { path: 'data/data.json', folder: 'data' },
-        { path: 'data/data.csv', folder: 'data' }
-      ];
+      let defaultFiles;
+      if (this.isAssignmentMode) {
+        // 作业模式：只添加一个 HTML 文件
+        defaultFiles = [
+          { path: 'html/index.html', folder: 'html' }
+        ];
+      } else {
+        // 普通模式：添加完整的默认文件
+        defaultFiles = [
+          { path: 'html/index.html', folder: 'html' },
+          { path: 'css/style.css', folder: 'css' },
+          { path: 'js/main.js', folder: 'js' },
+          { path: 'data/data.json', folder: 'data' },
+          { path: 'data/data.csv', folder: 'data' }
+        ];
+      }
 
       defaultFiles.forEach(file => {
         const contents = folderElements[file.folder].querySelector('.folder-contents');
@@ -299,6 +329,13 @@ export class FileManager {
 
   loadStoredFiles() {
     try {
+      // 作业模式下直接使用默认文件，不加载存储的文件
+      if (this.isAssignmentMode) {
+        console.log('📋 作业模式：使用全新的作业模板');
+        this.initDefaultFiles();
+        return;
+      }
+
       const storedFiles = getAllFiles();
 
       // 清除旧的缓存格式，强制使用新的默认内容
@@ -378,15 +415,24 @@ export class FileManager {
   }
 
   initDefaultFiles() {
-    // 强制设置默认文件内容
-    this.files = {
-      'html/index.html': this.getDefaultContent('html/index.html'),
-      'css/style.css': this.getDefaultContent('css/style.css'),
-      'js/main.js': this.getDefaultContent('js/main.js'),
-      'data/data.json': this.getDefaultContent('data/data.json'),
-      'data/data.csv': this.getDefaultContent('data/data.csv')
-    };
-    console.log('🕐 已初始化默认文件');
+    // 根据模式设置默认文件
+    if (this.isAssignmentMode) {
+      // 作业模式：只有一个简单的 HTML 文件
+      this.files = {
+        'html/index.html': this.getAssignmentDefaultContent()
+      };
+      console.log('📋 作业模式：已初始化简化文件结构');
+    } else {
+      // 普通模式：完整的默认文件
+      this.files = {
+        'html/index.html': this.getDefaultContent('html/index.html'),
+        'css/style.css': this.getDefaultContent('css/style.css'),
+        'js/main.js': this.getDefaultContent('js/main.js'),
+        'data/data.json': this.getDefaultContent('data/data.json'),
+        'data/data.csv': this.getDefaultContent('data/data.csv')
+      };
+      console.log('🕐 已初始化默认文件');
+    }
     console.log('文件数量:', Object.keys(this.files).length);
 
     // 立即加载到编辑器（不等待，确保内容可用）
@@ -903,6 +949,31 @@ export class FileManager {
         return result;
       })
       .join('\n');
+  }
+
+  /**
+   * 获取作业模式的默认 HTML 内容
+   */
+  getAssignmentDefaultContent() {
+    return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的作业</title>
+  <style>
+    /* 在这里编写 CSS 样式 */
+  </style>
+</head>
+<body>
+  <!-- 在这里编写 HTML 内容 -->
+  <h1>我的作业</h1>
+  
+  <script>
+    // 在这里编写 JavaScript 代码
+  </script>
+</body>
+</html>`;
   }
 
   getDefaultContent(filePath) {

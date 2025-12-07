@@ -22,7 +22,14 @@ const dbConfig = {
     user: 'root',
     password: '123123',
     database: 'programming_platform',
-    charset: 'utf8mb4'
+    charset: 'utf8mb4',
+    // 确保连接使用正确的字符集
+    typeCast: function (field, next) {
+        if (field.type === 'VAR_STRING' || field.type === 'STRING') {
+            return field.string();
+        }
+        return next();
+    }
 };
 
 // 性能监控对象
@@ -283,11 +290,8 @@ async function initDatabase() {
             connectionLimit: 50,       // 50个并发连接
             queueLimit: 0,             // 不限制队列
             connectTimeout: 5000,      // 连接超时 5秒
-            acquireTimeout: 5000,      // 获取连接超时 5秒
             enableKeepAlive: true,     // 保持连接活跃
-            keepAliveInitialDelay: 5000, // 5秒心跳
-            maxIdle: 10,               // 保持更多空闲连接
-            idleTimeout: 60000         // 空闲超时1分钟
+            keepAliveInitialDelay: 5000 // 5秒心跳
         });
 
         // 预热连接池 - 创建几个连接备用
@@ -297,6 +301,9 @@ async function initDatabase() {
             warmupPromises.push(pool.execute('SELECT 1'));
         }
         await Promise.all(warmupPromises);
+
+        // 设置连接字符集为UTF-8MB4
+        await query('SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci');
 
         // 监听连接池错误
         pool.on('error', (err) => {
@@ -1033,6 +1040,37 @@ async function createTablesIfNotExists() {
 
         console.log('✅ 已创建示例课程数据');
         }
+
+        // 创建通知表
+        await query(`
+            CREATE TABLE IF NOT EXISTS notifications (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                title VARCHAR(200) NOT NULL,
+                message TEXT NOT NULL,
+                type ENUM('user_registration', 'course_assignment', 'assignment_submission', 'grade_assigned', 'course_enrollment', 'system_announcement') NOT NULL,
+                sender_id INT NULL,
+                recipient_id INT NOT NULL,
+                related_id INT NULL,
+                related_type ENUM('course', 'assignment', 'submission', 'user', 'system') NULL,
+                priority ENUM('low', 'normal', 'high', 'urgent') DEFAULT 'normal',
+                is_read BOOLEAN DEFAULT FALSE,
+                read_at TIMESTAMP NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+                FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE SET NULL,
+                FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE,
+
+                INDEX idx_recipient (recipient_id),
+                INDEX idx_type (type),
+                INDEX idx_read (is_read),
+                INDEX idx_created (created_at),
+                INDEX idx_related (related_type, related_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='通知表'
+        `);
+
+        console.log('✅ 通知表检查完成');
+
     } catch (error) {
         // 忽略示例数据插入错误，表可能刚创建
         console.log('ℹ️  示例数据插入跳过或失败:', error.message);
@@ -1075,6 +1113,66 @@ async function checkAndAddUserTableFields() {
 
     } catch (error) {
         console.error('❌ 检查用户表字段失败:', error.message);
+        throw error;
+    }
+}
+
+// 创建通知给管理员的函数
+async function createNotificationForAdmin(type, data) {
+    try {
+        // 查找所有管理员用户
+        const adminUsers = await query('SELECT id FROM users WHERE role = ?', ['admin']);
+
+        if (adminUsers.length === 0) {
+            console.log('⚠️ 未找到管理员用户，无法发送通知');
+            return;
+        }
+
+        // 为每个管理员创建通知
+        const notificationPromises = adminUsers.map(admin => {
+            return query(`
+                INSERT INTO notifications (title, message, type, sender_id, recipient_id, related_id, related_type, priority)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            `, [
+                data.title,
+                data.message,
+                type,
+                data.senderId || null,
+                admin.id,
+                data.relatedId || null,
+                data.relatedType || null,
+                'normal'
+            ]);
+        });
+
+        await Promise.all(notificationPromises);
+        console.log(`📧 已向 ${adminUsers.length} 位管理员发送通知`);
+
+    } catch (error) {
+        console.error('❌ 创建管理员通知失败:', error);
+        throw error;
+    }
+}
+
+// 给特定用户发送通知
+async function createNotification(userId, type, data) {
+    try {
+        await query(`
+            INSERT INTO notifications (title, message, type, sender_id, recipient_id, related_id, related_type, priority)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            data.title,
+            data.message,
+            type,
+            data.senderId || null,
+            userId,
+            data.relatedId || null,
+            data.relatedType || null,
+            data.priority || 'normal'
+        ]);
+        console.log(`📧 已向用户 ${userId} 发送通知`);
+    } catch (error) {
+        console.error('❌ 创建通知失败:', error);
         throw error;
     }
 }
@@ -1304,6 +1402,20 @@ app.post('/api/public/register', async (req, res) => {
         const duration = Date.now() - startTime;
         console.log(`✅ 新用户注册成功: ${username} (${role}) - 耗时 ${duration}ms`);
 
+        // 创建通知给管理员
+        try {
+            await createNotificationForAdmin('user_registration', {
+                title: '新用户注册',
+                message: `新${role === 'student' ? '学生' : '教师'} ${username} (${fullName}) 刚刚注册了账号`,
+                senderId: result.insertId,
+                relatedId: result.insertId,
+                relatedType: 'user'
+            });
+            console.log('📧 已向管理员发送注册通知');
+        } catch (notificationError) {
+            console.error('❌ 发送注册通知失败:', notificationError);
+        }
+
         res.json({
             success: true,
             message: '注册成功！您现在可以使用账号登录了',
@@ -1373,6 +1485,20 @@ app.post('/api/users/register', async (req, res) => {
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [username, defaultEmail, passwordHash, fullName, role, studentId || null, employeeId || null, department || null, phone || null, major || null, grade || null]
         );
+
+        // 创建通知给管理员
+        try {
+            await createNotificationForAdmin('user_registration', {
+                title: '新用户注册',
+                message: `新${role === 'student' ? '学生' : '教师'} ${username} (${fullName}) 刚刚注册了账号`,
+                senderId: result.insertId,
+                relatedId: result.insertId,
+                relatedType: 'user'
+            });
+            console.log('📧 已向管理员发送注册通知');
+        } catch (notificationError) {
+            console.error('❌ 发送注册通知失败:', notificationError);
+        }
 
         res.json({
             success: true,
@@ -1993,6 +2119,21 @@ app.post('/api/courses', async (req, res) => {
             parseInt(max_students) || 50, start_date || null, end_date || null, is_public ? 1 : 0
         ]);
 
+        // 通知教师被分配了新课程
+        try {
+            await createNotification(parsedTeacherId, 'course_assignment', {
+                title: '新课程分配',
+                message: `管理员为您分配了新课程《${title}》，请及时准备教学内容。`,
+                senderId: null,
+                relatedId: result.insertId,
+                relatedType: 'course',
+                priority: 'high'
+            });
+            console.log('📧 已向教师发送课程分配通知');
+        } catch (notificationError) {
+            console.error('❌ 发送课程分配通知失败:', notificationError);
+        }
+
         res.json({
             success: true,
             message: '课程创建成功',
@@ -2186,6 +2327,39 @@ app.post('/api/courses/:id/enroll', async (req, res) => {
             UPDATE courses SET current_students = current_students + 1 WHERE id = ?
         `, [courseId]);
 
+        // 获取学生信息用于通知
+        const studentInfo = await query('SELECT username, full_name FROM users WHERE id = ?', [student_id]);
+
+        // 通知课程老师有新学生选课
+        try {
+            await createNotification(course.teacher_id, 'course_enrollment', {
+                title: '新学生选课',
+                message: `学生 ${studentInfo[0].username} (${studentInfo[0].full_name}) 选择了您的课程《${course.title}》`,
+                senderId: student_id,
+                relatedId: courseId,
+                relatedType: 'course',
+                priority: 'normal'
+            });
+            console.log('📧 已向老师发送选课通知');
+        } catch (notificationError) {
+            console.error('❌ 发送选课通知失败:', notificationError);
+        }
+
+        // 通知学生选课成功
+        try {
+            await createNotification(student_id, 'course_enrollment', {
+                title: '选课成功',
+                message: `您已成功加入课程《${course.title}》，请及时查看课程内容。`,
+                senderId: course.teacher_id,
+                relatedId: courseId,
+                relatedType: 'course',
+                priority: 'normal'
+            });
+            console.log('📧 已向学生发送选课成功通知');
+        } catch (notificationError) {
+            console.error('❌ 发送学生选课通知失败:', notificationError);
+        }
+
         res.json({
             success: true,
             message: '选课成功'
@@ -2346,8 +2520,8 @@ app.post('/api/courses/:courseId/assignments', async (req, res) => {
             });
         }
 
-        // 验证课程是否存在
-        const courses = await query('SELECT id FROM courses WHERE id = ?', [courseId]);
+        // 验证课程是否存在并获取课程信息
+        const courses = await query('SELECT id, title FROM courses WHERE id = ?', [courseId]);
         if (courses.length === 0) {
             return res.status(404).json({
                 success: false,
@@ -2371,6 +2545,38 @@ app.post('/api/courses/:courseId/assignments', async (req, res) => {
             start_time || null, end_time || null,
             parseFloat(max_score), allow_late_submission, auto_grade, is_published
         ]);
+
+        const course = courses[0];
+
+        // 如果作业是发布状态，通知选课的学生
+        if (is_published) {
+            try {
+                // 获取选课的学生
+                const enrolledStudents = await query(`
+                    SELECT ce.student_id, u.username, u.full_name
+                    FROM course_enrollments ce
+                    JOIN users u ON ce.student_id = u.id
+                    WHERE ce.course_id = ? AND ce.status = '已选课'
+                `, [courseId]);
+
+                // 为每个选课学生发送通知
+                const notificationPromises = enrolledStudents.map(student => {
+                    return createNotification(student.student_id, 'course_assignment', {
+                        title: '新作业发布',
+                        message: `您的课程《${course.title}》发布了新作业《${title}》`,
+                        senderId: parseInt(teacher_id),
+                        relatedId: result.insertId,
+                        relatedType: 'assignment',
+                        priority: 'normal'
+                    });
+                });
+
+                await Promise.all(notificationPromises);
+                console.log(`📧 已向 ${enrolledStudents.length} 位学生发送作业发布通知`);
+            } catch (notificationError) {
+                console.error('❌ 发送作业发布通知失败:', notificationError);
+            }
+        }
 
         res.json({
             success: true,
@@ -2456,8 +2662,15 @@ app.post('/api/assignments/submit', async (req, res) => {
             });
         }
 
-        // 验证作业是否存在
-        const assignments = await query('SELECT id, title FROM assignments WHERE id = ?', [assignmentId]);
+        // 验证作业是否存在，同时获取课程和老师信息
+        const assignments = await query(`
+            SELECT a.id, a.title, a.course_id, c.teacher_id, u.username as teacher_name, u.full_name as teacher_full_name
+            FROM assignments a
+            JOIN courses c ON a.course_id = c.id
+            JOIN users u ON c.teacher_id = u.id
+            WHERE a.id = ?
+        `, [assignmentId]);
+
         if (assignments.length === 0) {
             return res.status(404).json({
                 success: false,
@@ -2502,6 +2715,24 @@ app.post('/api/assignments/submit', async (req, res) => {
                 (assignment_id, student_id, submission_files, feedback, submission_status, submission_time, attempt_count)
                 VALUES (?, ?, ?, ?, '已提交', NOW(), 1)
             `, [assignmentId, studentId, submissionFiles, submissionContent]);
+        }
+
+        const assignment = assignments[0];
+        const student = students[0];
+
+        // 通知老师有新的作业提交
+        try {
+            await createNotification(assignment.teacher_id, 'assignment_submission', {
+                title: '新的作业提交',
+                message: `学生 ${student.username} (${student.full_name}) 提交了作业《${assignment.title}》`,
+                senderId: studentId,
+                relatedId: assignmentId,
+                relatedType: 'assignment',
+                priority: 'normal'
+            });
+            console.log('📧 已向老师发送作业提交通知');
+        } catch (notificationError) {
+            console.error('❌ 发送作业提交通知失败:', notificationError);
         }
 
         res.json({
@@ -2967,9 +3198,32 @@ app.post('/api/assignments/:assignmentId/submissions/:submissionId/grade', async
         // 更新分数
         await query(`
             UPDATE assignment_submissions
-            SET score = ?, graded_time = NOW(), graded_by = ?
+            SET score = ?, graded_time = NOW(), graded_by = ?, submission_status = '已评分'
             WHERE id = ? AND assignment_id = ?
         `, [score, gradedBy ? parseInt(gradedBy) : null, submissionId, assignmentId]);
+
+        // 获取作业和学生信息用于通知
+        const submission = submissions[0];
+        const studentId = submission.student_id;
+        
+        // 获取作业标题
+        const assignmentInfo = await query('SELECT title FROM assignments WHERE id = ?', [assignmentId]);
+        const assignmentTitle = assignmentInfo.length > 0 ? assignmentInfo[0].title : '未知作业';
+
+        // 通知学生作业已评分
+        try {
+            await createNotification(studentId, 'grade_assigned', {
+                title: '作业评分通知',
+                message: `您的作业《${assignmentTitle}》已评分，得分：${score}分`,
+                senderId: gradedBy ? parseInt(gradedBy) : null,
+                relatedId: parseInt(assignmentId),
+                relatedType: 'assignment',
+                priority: 'high'
+            });
+            console.log('📧 已向学生发送评分通知');
+        } catch (notificationError) {
+            console.error('❌ 发送评分通知失败:', notificationError);
+        }
 
         res.json({
             success: true,
@@ -3400,6 +3654,283 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
     }
 });
 
+// ========================================
+// 通知管理API
+// ========================================
+
+// 获取通知列表
+app.get('/api/notifications', async (req, res) => {
+    try {
+        const { recipientId } = req.query;
+
+        let sql = 'SELECT id, title, message, type, sender_id, recipient_id, ' +
+                'related_id, related_type, priority, is_read, ' +
+                'read_at, created_at, updated_at ' +
+                'FROM notifications';
+
+        if (recipientId) {
+            sql += ' WHERE recipient_id = ' + parseInt(recipientId);
+        }
+
+        sql += ' ORDER BY created_at DESC LIMIT 50';
+
+        console.log('执行查询SQL:', sql);
+        const notifications = await query(sql, []);
+
+        res.json({
+            success: true,
+            data: notifications,
+            total: notifications.length,
+            unread: notifications.filter(n => !n.is_read).length,
+            count: notifications.length
+        });
+
+    } catch (error) {
+        console.error('获取通知列表失败:', error);
+        res.status(500).json({
+            success: false,
+            message: '获取通知列表失败：' + error.message
+        });
+    }
+});
+
+// 创建通知
+app.post('/api/notifications', async (req, res) => {
+    try {
+        const {
+            type,
+            recipient_id,
+            title,
+            message,
+            sender_id = null,
+            related_id = null,
+            related_type = null,
+            priority = 'normal'
+        } = req.body;
+
+        // 验证必填字段
+        if (!type || !recipient_id || !title || !message) {
+            return res.status(400).json({
+                success: false,
+                message: '缺少必填字段：type, recipient_id, title, message'
+            });
+        }
+
+        // 验证通知类型
+        const validTypes = ['user_registration', 'course_assignment', 'assignment_submission', 'grade_assigned', 'course_enrollment', 'system_announcement'];
+        if (!validTypes.includes(type)) {
+            return res.status(400).json({
+                success: false,
+                message: '无效的通知类型'
+            });
+        }
+
+        // 验证优先级
+        const validPriorities = ['low', 'normal', 'high', 'urgent'];
+        if (!validPriorities.includes(priority)) {
+            return res.status(400).json({
+                success: false,
+                message: '无效的优先级'
+            });
+        }
+
+        // 检查接收者是否存在
+        const recipient = await query('SELECT id, full_name FROM users WHERE id = ?', [recipient_id]);
+        if (recipient.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: '接收者不存在'
+            });
+        }
+
+        // 如果指定了发送者，检查发送者是否存在
+        if (sender_id) {
+            const sender = await query('SELECT id, full_name FROM users WHERE id = ?', [sender_id]);
+            if (sender.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: '发送者不存在'
+                });
+            }
+        }
+
+        // 创建通知
+        const insertResult = await query(`
+            INSERT INTO notifications (type, recipient_id, title, message, sender_id, related_id, related_type, priority, is_read, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, false, NOW(), NOW())
+        `, [type, recipient_id, title, message, sender_id, related_id, related_type, priority]);
+
+        const notificationId = insertResult.insertId;
+
+        // 获取创建的通知
+        const createdNotification = await query(`
+            SELECT n.*,
+                   sender.full_name as sender_name,
+                   recipient.full_name as recipient_name
+            FROM notifications n
+            LEFT JOIN users sender ON n.sender_id = sender.id
+            LEFT JOIN users recipient ON n.recipient_id = recipient.id
+            WHERE n.id = ?
+        `, [notificationId]);
+
+        res.json({
+            success: true,
+            message: '通知创建成功',
+            data: createdNotification[0]
+        });
+
+    } catch (error) {
+        console.error('创建通知失败:', error);
+        res.status(500).json({
+            success: false,
+            message: '创建通知失败：' + error.message
+        });
+    }
+});
+
+// 标记通知为已读
+app.put('/api/notifications/:id/read', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // 检查通知是否存在
+        const checkSql = 'SELECT * FROM notifications WHERE id = ?';
+        const existingNotification = await query(checkSql, [id]);
+
+        if (existingNotification.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: '通知不存在'
+            });
+        }
+
+        const notification = existingNotification[0];
+
+        if (notification.is_read) {
+            return res.json({
+                success: true,
+                message: '通知已经是已读状态'
+            });
+        }
+
+        // 更新为已读
+        const updateSql = `
+            UPDATE notifications
+            SET is_read = true, read_at = NOW(), updated_at = NOW()
+            WHERE id = ?
+        `;
+
+        await query(updateSql, [id]);
+
+        res.json({
+            success: true,
+            message: '通知已标记为已读'
+        });
+
+    } catch (error) {
+        console.error('标记已读失败:', error);
+        res.status(500).json({
+            success: false,
+            message: '标记已读失败：' + error.message
+        });
+    }
+});
+
+// 标记所有通知为已读
+app.put('/api/notifications/mark-all-read', async (req, res) => {
+    try {
+        const { recipientId } = req.body;
+
+        if (!recipientId) {
+            return res.status(400).json({
+                success: false,
+                message: '缺少接收者ID'
+            });
+        }
+
+        // 获取未读通知数量
+        const countSql = 'SELECT COUNT(*) as count FROM notifications WHERE recipient_id = ? AND is_read = false';
+        const countResult = await query(countSql, [recipientId]);
+        const unreadCount = countResult[0].count;
+
+        if (unreadCount === 0) {
+            return res.json({
+                success: true,
+                message: '没有未读通知需要标记',
+                count: 0
+            });
+        }
+
+        // 更新所有未读通知为已读
+        const updateSql = `
+            UPDATE notifications
+            SET is_read = true, read_at = NOW(), updated_at = NOW()
+            WHERE recipient_id = ? AND is_read = false
+        `;
+
+        await query(updateSql, [recipientId]);
+
+        res.json({
+            success: true,
+            message: `已标记 ${unreadCount} 条通知为已读`,
+            count: unreadCount
+        });
+
+    } catch (error) {
+        console.error('标记全部已读失败:', error);
+        res.status(500).json({
+            success: false,
+            message: '标记全部已读失败：' + error.message
+        });
+    }
+});
+
+// 清空所有通知
+app.delete('/api/notifications/clear-all', async (req, res) => {
+    try {
+        const { recipientId } = req.query;
+
+        if (!recipientId) {
+            return res.status(400).json({
+                success: false,
+                message: '缺少接收者ID'
+            });
+        }
+
+        // 获取要删除的通知数量
+        const countSql = 'SELECT COUNT(*) as count FROM notifications WHERE recipient_id = ?';
+        const countResult = await query(countSql, [recipientId]);
+        const deletedCount = countResult[0].count;
+
+        if (deletedCount === 0) {
+            return res.json({
+                success: true,
+                message: '没有通知需要清空',
+                count: 0
+            });
+        }
+
+        // 删除该用户的所有通知
+        const deleteSql = 'DELETE FROM notifications WHERE recipient_id = ?';
+        await query(deleteSql, [recipientId]);
+
+        console.log(`🗑️ 用户 ${recipientId} 清空了 ${deletedCount} 条通知`);
+
+        res.json({
+            success: true,
+            message: `已清空 ${deletedCount} 条通知`,
+            count: deletedCount
+        });
+
+    } catch (error) {
+        console.error('清空通知失败:', error);
+        res.status(500).json({
+            success: false,
+            message: '清空通知失败：' + error.message
+        });
+    }
+});
+
 app.listen(PORT, async () => {
         console.log(`\n🌟 服务器启动成功！`);
         console.log(`📡 服务器运行在: http://localhost:${PORT}`);
@@ -3421,6 +3952,10 @@ app.listen(PORT, async () => {
         console.log(`\n📋 可用API端点:`);
         console.log(`   POST http://localhost:${PORT}/api/users/login (登录)`);
         console.log(`   POST http://localhost:${PORT}/api/public/register (公开注册)`);
+        console.log(`   GET  http://localhost:${PORT}/api/notifications (获取通知)`);
+        console.log(`   POST http://localhost:${PORT}/api/notifications (创建通知)`);
+        console.log(`   PUT  http://localhost:${PORT}/api/notifications/:id/read (标记已读)`);
+        console.log(`   PUT  http://localhost:${PORT}/api/notifications/mark-all-read (全部已读)`);
         console.log(`   GET  http://localhost:${PORT}/api/test (测试)`);
         console.log(`   GET  http://localhost:${PORT}/api/health (健康检查)`);
         console.log(`\n💾 当前模式: 数据库模式`);

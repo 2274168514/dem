@@ -15,6 +15,89 @@ export class AssignmentManager {
   constructor() {
     this.assignments = [];
     this.loadAssignments();
+    // 自动尝试同步API数据
+    this.init().catch(err => console.error('自动同步失败:', err));
+  }
+
+  /**
+   * 初始化：从API同步数据
+   */
+  async init() {
+    try {
+      console.log('🔄 开始从API同步作业数据...');
+      // 尝试从API获取作业列表
+      const response = await fetch('http://127.0.0.1:5024/api/assignments');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && Array.isArray(result.data)) {
+           const apiAssignments = result.data;
+           
+           // 并行获取所有作业的提交记录
+           await Promise.all(apiAssignments.map(async (assignment) => {
+             try {
+               const subRes = await fetch(`http://127.0.0.1:5024/api/assignments/${assignment.id}/submissions`);
+               if (subRes.ok) {
+                 const subResult = await subRes.json();
+                 if (subResult.success && subResult.data && subResult.data.submissions) {
+                   // 转换API数据格式为前端格式
+                   assignment.submissions = subResult.data.submissions.map(s => ({
+                     id: s.id,
+                     assignmentId: s.assignment_id,
+                     studentId: s.student_id,
+                     studentName: s.student_full_name || s.student_name,
+                     studentEmail: s.student_email,
+                     submittedAt: s.submission_time,
+                     status: s.submission_status === '已提交' ? 'submitted' : 
+                             s.submission_status === '已评分' ? 'graded' : s.submission_status,
+                     files: typeof s.submission_files === 'string' ? JSON.parse(s.submission_files || '[]') : s.submission_files,
+                     score: s.score,
+                     feedback: s.feedback,
+                     grade: s.score // 兼容 router.js 使用的 grade 字段
+                   }));
+                 } else {
+                   assignment.submissions = [];
+                 }
+               }
+             } catch (e) {
+               console.warn(`获取作业 ${assignment.id} 的提交失败`, e);
+               assignment.submissions = [];
+             }
+             
+             // 确保其他必要字段存在
+             assignment.assignedStudents = []; // API暂未返回此字段，设为空
+             assignment.teacherId = assignment.teacher_id;
+             assignment.courseId = assignment.course_id;
+           }));
+           
+           this.assignments = apiAssignments;
+           this.saveAssignments();
+           console.log(`✅ 已从API同步 ${this.assignments.length} 个作业及其提交数据`);
+        }
+      }
+    } catch (error) {
+      console.error('初始化同步失败:', error);
+    }
+  }
+
+  /**
+   * 获取所有作业 (兼容 router.js)
+   */
+  getAssignments() {
+    return this.getAllAssignments();
+  }
+
+  /**
+   * 获取所有提交 (兼容 router.js)
+   */
+  get submissions() {
+    return this.assignments.flatMap(a => a.submissions || []);
+  }
+
+  /**
+   * 获取学生的提交 (兼容 router.js)
+   */
+  getStudentSubmissions(studentId) {
+    return this.submissions.filter(s => s.studentId == studentId);
   }
 
   /**
@@ -296,7 +379,41 @@ export class AssignmentManager {
     this.assignments[index] = assignment;
     this.saveAssignments();
 
+    // 创建作业提交通知给教师
+    await this.createAssignmentSubmissionNotification(assignment, submission, currentUser);
+
     return submission;
+  }
+
+  /**
+   * 创建作业提交通知
+   */
+  async createAssignmentSubmissionNotification(assignment, submission, student) {
+    try {
+      // 获取通知管理器实例
+      const notificationManager = window.notificationManager;
+      if (!notificationManager) {
+        console.log('🔔 通知管理器未找到，跳过通知创建');
+        return;
+      }
+
+      // 获取作业教师信息
+      const teacherId = assignment.teacherId || assignment.teacher_id;
+
+      // 为教师创建通知
+      await notificationManager.createNotification('assignment_submission', teacherId, {
+        studentName: submission.studentName || student.fullName || student.username,
+        assignmentTitle: assignment.title,
+        senderId: student.id || student.username,
+        relatedType: 'assignment',
+        relatedId: assignment.id,
+        priority: 'normal'
+      });
+
+      console.log('✅ 已为教师创建作业提交通知');
+    } catch (error) {
+      console.error('❌ 创建作业提交通知失败:', error);
+    }
   }
 }
 

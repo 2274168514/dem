@@ -11,7 +11,13 @@ class LanguageManager {
             || localStorage.getItem('preferred-language') 
             || 'zh';
         this.translations = this.loadTranslations();
-        this.init();
+        
+        // 确保DOM准备好后再初始化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.init());
+        } else {
+            this.init();
+        }
     }
 
     loadTranslations() {
@@ -97,7 +103,172 @@ class LanguageManager {
                 'success-saved': '文件已保存',
                 'success-deleted': '文件已删除',
                 'success-created': '文件已创建',
-                'success-renamed': '文件已重命名'
+                'success-renamed': '文件已重命名',
+                'success-profile-updated': '个人资料已更新',
+
+                // 个人资料页面
+                'profile-title': '个人资料',
+                'profile-basic-info': '基本信息',
+                'profile-account-info': '账户信息',
+                'profile-username': '用户名',
+                'profile-fullname': '姓名',
+                'profile-email': '邮箱',
+                'profile-role': '角色',
+                'profile-student-id': '学号',
+                'profile-employee-id': '工号',
+                'profile-department': '院系',
+                'profile-major': '专业',
+                'profile-phone': '电话',
+                'profile-grade': '年级',
+                'profile-save': '保存更改',
+                'profile-cancel': '取消',
+                'profile-role-admin': '管理员',
+                'profile-role-teacher': '教师',
+                'profile-role-student': '学生',
+                'profile-avatar-upload': '更换头像',
+                'profile-password-change': '修改密码',
+                'profile-current-password': '当前密码',
+                'profile-new-password': '新密码',
+                'profile-confirm-password': '确认新密码',
+
+                // 搜索和筛选
+                'searchPlaceholder': '搜索学生姓名或学号...',
+                'allStatuses': '所有状态',
+                'studentActive': '已提交',
+                'studentInactive': '未提交'
+            },
+            en: {
+                // Editor Interface
+                'run-btn': 'Run Code',
+                'auto-run': 'Auto Run',
+                'theme-dark': '🌙 Dark',
+                'theme-light': '☀️ Light',
+                'status-ready': 'Ready',
+                'status-compiling': 'Compiling...',
+                'status-compiled': 'Compiled',
+                'status-error': 'Error',
+                'status-saving': 'Saving...',
+                'status-saved': 'Saved',
+
+                // File Operations
+                'new-file': 'New File',
+                'save-file': 'Save File',
+                'delete-file': 'Delete File',
+                'rename-file': 'Rename File',
+                'file-name': 'File Name',
+                'confirm-delete': 'Confirm Delete',
+                'delete-confirm': 'Are you sure you want to delete "{name}"?',
+
+                // Tab Related
+                'untitled': 'Untitled',
+                'close-tab': 'Close Tab',
+                'close-others': 'Close Others',
+                'close-all': 'Close All',
+
+                // Code Panels
+                'html-panel': 'HTML',
+                'css-panel': 'CSS',
+                'js-panel': 'JavaScript',
+
+                // Console
+                'console-clear': 'Clear Console',
+                'console-placeholder': 'Console output will appear here...',
+                'console-level-log': 'Log',
+                'console-level-info': 'Info',
+                'console-level-warn': 'Warn',
+                'console-level-error': 'Error',
+                'debug-console': 'Debug Console',
+                'terminal': 'Terminal',
+                'issues': 'Issues',
+                'hide-console': 'Hide Console',
+
+                // File Tree
+                'create-folder': 'New Folder',
+                'create-file': 'New File',
+                'refresh-tree': 'Refresh',
+                'collapse-all': 'Collapse All',
+                'expand-all': 'Expand All',
+                'file-explorer': 'Explorer',
+
+                // AI Assistant
+                'ai-title': 'AI Assistant',
+                'ai-placeholder': 'Describe the code or file you want to generate, e.g., Create a responsive navbar component',
+                'ai-prompt-label': 'Describe your request:',
+                'ai-generate': 'Generate',
+                'ai-insert': 'Insert',
+                'ai-clear': 'Clear',
+                'ai-programming': '🤖 AI Coding',
+
+                // Command Bar Buttons
+                'back-to-assignment': '🔙 Back',
+                'submit-assignment': '📋 Submit',
+                'export-project': '📦 Export',
+                'template-btn': '📊 Template',
+
+                // Preview Related
+                'real-time-preview': 'Real-time Preview',
+
+                // Error Messages
+                'error-network': 'Network Error',
+                'error-generic': 'Operation Failed',
+                'error-empty': 'Content cannot be empty',
+                'error-invalid': 'Invalid Input',
+
+                // Success Messages
+                'success-saved': 'File Saved',
+                'success-deleted': 'File Deleted',
+                'success-created': 'File Created',
+                'success-renamed': 'File Renamed',
+                'success-profile-updated': 'Profile Updated',
+
+                // Profile Page
+                'profile-title': 'Profile',
+                'profile-basic-info': 'Basic Info',
+                'profile-account-info': 'Account Info',
+                'profile-username': 'Username',
+                'profile-fullname': 'Full Name',
+                'profile-email': 'Email',
+                'profile-role': 'Role',
+                'profile-student-id': 'Student ID',
+                'profile-employee-id': 'Employee ID',
+                'profile-department': 'Department',
+                'profile-major': 'Major',
+                'profile-phone': 'Phone',
+                'profile-grade': 'Grade',
+                'profile-save': 'Save Changes',
+                'profile-cancel': 'Cancel',
+                'profile-role-admin': 'Admin',
+                'profile-role-teacher': 'Teacher',
+                'profile-role-student': 'Student',
+                'profile-avatar-upload': 'Change Avatar',
+                'profile-password-change': 'Change Password',
+                'profile-current-password': 'Current Password',
+                'profile-new-password': 'New Password',
+                'profile-confirm-password': 'Confirm Password',
+
+                // Search and Filter
+                'searchPlaceholder': 'Search student name or ID...',
+                'allStatuses': 'All Statuses',
+                'studentActive': 'Submitted',
+                'studentInactive': 'Not Submitted',
+
+                // 通知相关
+                'notification-center': '通知中心',
+                'mark-all-read': '全部已读',
+                'loading': '加载中...',
+                'view-all': '查看全部',
+                'no-notifications': '暂无通知',
+                'minutes-ago': '分钟前',
+                'hours-ago': '小时前',
+                'days-ago': '天前',
+                'just-now': '刚刚',
+                'mark-as-read': '标记已读',
+                'new-user-registration': '新用户注册',
+                'course-assignment': '课程分配',
+                'assignment-submission': '作业提交',
+                'grade-assigned': '作业评分',
+                'course-enrollment': '课程报名',
+                'system-announcement': '系统公告'
             },
             en: {
                 // Editor Interface
@@ -161,6 +332,25 @@ class LanguageManager {
                 'ai-clear': 'Clear',
                 'ai-programming': '🤖 AI Coding',
 
+                // Notifications
+                'notification-center': 'Notification Center',
+                'mark-all-read': 'Mark All Read',
+                'view-all': 'View All',
+                'no-notifications': 'No notifications',
+                'loading-notifications': 'Loading...',
+                'notifications-error': 'Failed to load notifications',
+                'retry': 'Retry',
+                'new-user-registration': 'New User Registration',
+                'course-assignment': 'Course Assignment',
+                'assignment-submission': 'Assignment Submission',
+                'grade-assigned': 'Grade Assigned',
+                'course-enrollment': 'Course Enrollment',
+                'system-announcement': 'System Announcement',
+                'just-now': 'Just now',
+                'minutes-ago': 'minutes ago',
+                'hours-ago': 'hours ago',
+                'days-ago': 'days ago',
+
                 // Command Bar Buttons
                 'back-to-assignment': '🔙 Back',
                 'submit-assignment': '📋 Submit',
@@ -180,20 +370,58 @@ class LanguageManager {
                 'success-saved': 'File saved',
                 'success-deleted': 'File deleted',
                 'success-created': 'File created',
-                'success-renamed': 'File renamed'
+                'success-renamed': 'File renamed',
+
+                // Notifications
+                'notification-center': 'Notifications',
+                'mark-all-read': 'Mark All Read',
+                'loading': 'Loading...',
+                'view-all': 'View All',
+                'no-notifications': 'No notifications',
+                'minutes-ago': 'minutes ago',
+                'hours-ago': 'hours ago',
+                'days-ago': 'days ago',
+                'just-now': 'just now',
+                'mark-as-read': 'Mark as Read',
+                'new-user-registration': 'New User Registration',
+                'course-assignment': 'Course Assignment',
+                'assignment-submission': 'Assignment Submission',
+                'grade-assigned': 'Grade Assigned',
+                'course-enrollment': 'Course Enrollment',
+                'system-announcement': 'System Announcement'
             }
         };
     }
 
     init() {
+        console.log('🌐 LanguageManager 初始化...');
         this.setupEventListeners();
         this.updateLanguage();
     }
 
     setupEventListeners() {
         const langToggleBtn = document.getElementById('lang-toggle-btn');
+        console.log('🔍 查找语言切换按钮:', langToggleBtn ? '找到' : '未找到');
+        
         if (langToggleBtn) {
-            langToggleBtn.addEventListener('click', () => this.toggleLanguage());
+            // 避免重复绑定
+            if (langToggleBtn._hasLangListener) {
+                console.log('⚠️ 语言按钮已绑定事件，跳过');
+                return;
+            }
+            
+            langToggleBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('👉 语言按钮被点击');
+                this.toggleLanguage();
+            });
+            langToggleBtn._hasLangListener = true;
+            console.log('✅ 语言切换按钮事件已绑定');
+        } else {
+            // 如果没找到，延迟重试
+            console.log('⚠️ 语言按钮未找到，500ms后重试...');
+            setTimeout(() => this.setupEventListeners(), 500);
         }
         
         // 监听全局语言变化事件（跨页面同步）

@@ -2231,68 +2231,509 @@ export class Router {
   }
 
   /**
-   * 加载个人资料页面
+   * 加载个人资料页面 - 美化版，支持中英文和深浅色模式
    */
   async loadProfilePage() {
     const pageContent = document.getElementById('page-content');
     if (!pageContent) return;
 
     const currentUser = userAuth.getCurrentUser();
+    if (!currentUser) {
+      this.navigate('/login');
+      return;
+    }
+
+    // 获取语言管理器
+    const lang = window.languageManager?.getCurrentLanguage() || 'zh';
+    const t = (key) => window.languageManager?.t(key) || key;
+
+    // 角色显示
+    const roleLabels = {
+      admin: t('profile-role-admin'),
+      teacher: t('profile-role-teacher'),
+      student: t('profile-role-student')
+    };
+
+    // 角色对应的颜色配置
+    const roleColors = {
+      admin: {
+        bg: 'bg-gradient-to-br from-purple-500 to-indigo-600',
+        badge: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+        icon: 'text-purple-500'
+      },
+      teacher: {
+        bg: 'bg-gradient-to-br from-blue-500 to-cyan-600',
+        badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+        icon: 'text-blue-500'
+      },
+      student: {
+        bg: 'bg-gradient-to-br from-emerald-500 to-teal-600',
+        badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+        icon: 'text-emerald-500'
+      }
+    };
+
+    const colors = roleColors[currentUser.role] || roleColors.student;
 
     pageContent.innerHTML = `
-      <div class="animate-fade-in-up">
-        <h1 class="text-2xl font-bold text-white mb-6">个人资料</h1>
+      <div class="profile-page animate-fade-in-up max-w-5xl mx-auto">
+        <!-- 页面标题 -->
+        <div class="flex items-center justify-between mb-8">
+          <h1 class="text-2xl font-bold profile-title">${t('profile-title')}</h1>
+        </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div class="lg:col-span-1">
-            <div class="glass-effect rounded-lg p-6 text-center">
-              <div class="w-20 h-20 bg-gray-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span class="text-2xl text-white font-bold">${(currentUser.fullName || currentUser.username).charAt(0).toUpperCase()}</span>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- 左侧：用户卡片 -->
+          <div class="lg:col-span-4">
+            <div class="profile-card rounded-2xl overflow-hidden shadow-xl">
+              <!-- 顶部背景渐变 -->
+              <div class="${colors.bg} h-28 relative">
+                <div class="absolute inset-0 bg-black/10"></div>
+                <!-- 装饰图案 -->
+                <svg class="absolute right-0 top-0 h-full opacity-10" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <circle cx="80" cy="20" r="40" fill="white"/>
+                  <circle cx="100" cy="60" r="30" fill="white"/>
+                </svg>
               </div>
-              <h3 class="text-lg font-semibold text-white mb-2">${currentUser.fullName || currentUser.username}</h3>
-              <p class="text-gray-400 mb-4">${currentUser.email}</p>
-              <span class="px-3 py-1 text-sm rounded-full ${
-                currentUser.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                currentUser.role === 'teacher' ? 'bg-blue-100 text-blue-800' :
-                'bg-green-100 text-green-800'
-              }">
-                ${currentUser.role === 'admin' ? '管理员' : currentUser.role === 'teacher' ? '教师' : '学生'}
-              </span>
+              
+              <!-- 头像 -->
+              <div class="relative px-6 pb-6">
+                <div class="absolute -top-12 left-1/2 transform -translate-x-1/2">
+                  <div class="w-24 h-24 rounded-full border-4 border-white dark:border-gray-800 shadow-lg ${colors.bg} flex items-center justify-center">
+                    <span class="text-3xl font-bold text-white">${(currentUser.fullName || currentUser.username).charAt(0).toUpperCase()}</span>
+                  </div>
+                </div>
+                
+                <!-- 用户信息 -->
+                <div class="pt-14 text-center">
+                  <h2 class="text-xl font-bold profile-name mb-1">${currentUser.fullName || currentUser.username}</h2>
+                  <p class="text-sm profile-email mb-3">${currentUser.email || ''}</p>
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${colors.badge}">
+                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      ${currentUser.role === 'admin' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>' : 
+                        currentUser.role === 'teacher' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>' :
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>'}
+                    </svg>
+                    ${roleLabels[currentUser.role]}
+                  </span>
+                </div>
+
+                <!-- 账户统计 -->
+                <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <div class="grid grid-cols-2 gap-4 text-center">
+                    <div>
+                      <p class="text-2xl font-bold ${colors.icon}">${currentUser.role === 'student' ? '0' : currentUser.role === 'teacher' ? '0' : '—'}</p>
+                      <p class="text-xs profile-stat-label">${currentUser.role === 'student' ? (lang === 'zh' ? '已选课程' : 'Courses') : currentUser.role === 'teacher' ? (lang === 'zh' ? '授课数' : 'Courses') : (lang === 'zh' ? '系统用户' : 'Users')}</p>
+                    </div>
+                    <div>
+                      <p class="text-2xl font-bold ${colors.icon}">${currentUser.role === 'student' ? '0' : currentUser.role === 'teacher' ? '0' : '—'}</p>
+                      <p class="text-xs profile-stat-label">${currentUser.role === 'student' ? (lang === 'zh' ? '完成作业' : 'Assignments') : currentUser.role === 'teacher' ? (lang === 'zh' ? '学生数' : 'Students') : (lang === 'zh' ? '总课程' : 'Courses')}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 修改密码卡片 -->
+            <div class="profile-card rounded-2xl p-6 mt-6 shadow-lg">
+              <h3 class="text-base font-semibold profile-section-title mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2 ${colors.icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                ${t('profile-password-change')}
+              </h3>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-xs font-medium profile-label mb-1.5">${t('profile-current-password')}</label>
+                  <input type="password" id="currentPassword" class="profile-input w-full px-3 py-2.5 rounded-lg text-sm" placeholder="••••••••">
+                </div>
+                <div>
+                  <label class="block text-xs font-medium profile-label mb-1.5">${t('profile-new-password')}</label>
+                  <input type="password" id="newPassword" class="profile-input w-full px-3 py-2.5 rounded-lg text-sm" placeholder="••••••••">
+                </div>
+                <div>
+                  <label class="block text-xs font-medium profile-label mb-1.5">${t('profile-confirm-password')}</label>
+                  <input type="password" id="confirmPassword" class="profile-input w-full px-3 py-2.5 rounded-lg text-sm" placeholder="••••••••">
+                </div>
+                <button onclick="window.profilePage.changePassword()" class="w-full py-2.5 rounded-lg text-sm font-medium text-white ${colors.bg} hover:opacity-90 transition-opacity">
+                  ${t('profile-password-change')}
+                </button>
+              </div>
             </div>
           </div>
 
-          <div class="lg:col-span-2">
-            <div class="glass-effect rounded-lg p-6">
-              <h3 class="text-lg font-semibold text-white mb-4">基本信息</h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-300 mb-2">用户名</label>
-                  <input type="text" value="${currentUser.username}" disabled class="input-field w-full px-4 py-3 rounded-lg">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-300 mb-2">姓名</label>
-                  <input type="text" value="${currentUser.fullName}" class="input-field w-full px-4 py-3 rounded-lg">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-300 mb-2">邮箱</label>
-                  <input type="email" value="${currentUser.email}" class="input-field w-full px-4 py-3 rounded-lg">
-                </div>
-                ${currentUser.studentId || currentUser.employeeId ? `
-                  <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">${currentUser.studentId ? '学号' : '工号'}</label>
-                    <input type="text" value="${currentUser.studentId || currentUser.employeeId}" class="input-field w-full px-4 py-3 rounded-lg">
+          <!-- 右侧：编辑表单 -->
+          <div class="lg:col-span-8">
+            <div class="profile-card rounded-2xl p-6 shadow-lg">
+              <h3 class="text-lg font-semibold profile-section-title mb-6 flex items-center">
+                <svg class="w-5 h-5 mr-2 ${colors.icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                ${t('profile-basic-info')}
+              </h3>
+              
+              <form id="profile-form" class="space-y-6">
+                <!-- 基本信息行 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="form-group">
+                    <label class="block text-xs font-medium profile-label mb-1.5">${t('profile-username')}</label>
+                    <input type="text" id="profile-username" value="${currentUser.username || ''}" disabled 
+                      class="profile-input w-full px-4 py-3 rounded-xl text-sm bg-gray-100 dark:bg-gray-700/50 cursor-not-allowed">
+                    <p class="text-xs profile-hint mt-1">${lang === 'zh' ? '用户名不可修改' : 'Username cannot be changed'}</p>
                   </div>
-                ` : ''}
-              </div>
-              <div class="mt-6 flex justify-end space-x-3">
-                <button class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg">取消</button>
-                <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">保存</button>
+                  <div class="form-group">
+                    <label class="block text-xs font-medium profile-label mb-1.5">${t('profile-fullname')}</label>
+                    <input type="text" id="profile-fullname" value="${currentUser.fullName || ''}" 
+                      class="profile-input w-full px-4 py-3 rounded-xl text-sm" placeholder="${lang === 'zh' ? '请输入姓名' : 'Enter your name'}">
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="form-group">
+                    <label class="block text-xs font-medium profile-label mb-1.5">${t('profile-email')}</label>
+                    <input type="email" id="profile-email" value="${currentUser.email || ''}" 
+                      class="profile-input w-full px-4 py-3 rounded-xl text-sm" placeholder="${lang === 'zh' ? '请输入邮箱' : 'Enter your email'}">
+                  </div>
+                  <div class="form-group">
+                    <label class="block text-xs font-medium profile-label mb-1.5">${t('profile-phone')}</label>
+                    <input type="tel" id="profile-phone" value="${currentUser.phone || ''}" 
+                      class="profile-input w-full px-4 py-3 rounded-xl text-sm" placeholder="${lang === 'zh' ? '请输入电话' : 'Enter your phone'}">
+                  </div>
+                </div>
+
+                <!-- 角色特定字段 -->
+                ${currentUser.role === 'student' ? `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="form-group">
+                    <label class="block text-xs font-medium profile-label mb-1.5">${t('profile-student-id')}</label>
+                    <input type="text" id="profile-studentId" value="${currentUser.studentId || ''}" 
+                      class="profile-input w-full px-4 py-3 rounded-xl text-sm" placeholder="${lang === 'zh' ? '请输入学号' : 'Enter student ID'}">
+                  </div>
+                  <div class="form-group">
+                    <label class="block text-xs font-medium profile-label mb-1.5">${t('profile-grade')}</label>
+                    <input type="text" id="profile-grade" value="${currentUser.grade || ''}" 
+                      class="profile-input w-full px-4 py-3 rounded-xl text-sm" placeholder="${lang === 'zh' ? '请输入年级' : 'Enter grade'}">
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="form-group">
+                    <label class="block text-xs font-medium profile-label mb-1.5">${t('profile-department')}</label>
+                    <input type="text" id="profile-department" value="${currentUser.department || ''}" 
+                      class="profile-input w-full px-4 py-3 rounded-xl text-sm" placeholder="${lang === 'zh' ? '请输入院系' : 'Enter department'}">
+                  </div>
+                  <div class="form-group">
+                    <label class="block text-xs font-medium profile-label mb-1.5">${t('profile-major')}</label>
+                    <input type="text" id="profile-major" value="${currentUser.major || ''}" 
+                      class="profile-input w-full px-4 py-3 rounded-xl text-sm" placeholder="${lang === 'zh' ? '请输入专业' : 'Enter major'}">
+                  </div>
+                </div>
+                ` : currentUser.role === 'teacher' ? `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="form-group">
+                    <label class="block text-xs font-medium profile-label mb-1.5">${t('profile-employee-id')}</label>
+                    <input type="text" id="profile-employeeId" value="${currentUser.employeeId || ''}" 
+                      class="profile-input w-full px-4 py-3 rounded-xl text-sm" placeholder="${lang === 'zh' ? '请输入工号' : 'Enter employee ID'}">
+                  </div>
+                  <div class="form-group">
+                    <label class="block text-xs font-medium profile-label mb-1.5">${t('profile-department')}</label>
+                    <input type="text" id="profile-department" value="${currentUser.department || ''}" 
+                      class="profile-input w-full px-4 py-3 rounded-xl text-sm" placeholder="${lang === 'zh' ? '请输入院系' : 'Enter department'}">
+                  </div>
+                </div>
+                ` : `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="form-group">
+                    <label class="block text-xs font-medium profile-label mb-1.5">${t('profile-department')}</label>
+                    <input type="text" id="profile-department" value="${currentUser.department || ''}" 
+                      class="profile-input w-full px-4 py-3 rounded-xl text-sm" placeholder="${lang === 'zh' ? '请输入部门' : 'Enter department'}">
+                  </div>
+                </div>
+                `}
+
+                <!-- 操作按钮 -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <button type="button" onclick="window.profilePage.resetForm()" 
+                    class="px-6 py-2.5 rounded-xl text-sm font-medium profile-btn-secondary transition-all">
+                    ${t('profile-cancel')}
+                  </button>
+                  <button type="submit" 
+                    class="px-6 py-2.5 rounded-xl text-sm font-medium text-white ${colors.bg} hover:opacity-90 transition-all shadow-lg hover:shadow-xl">
+                    ${t('profile-save')}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- 账户信息卡片 -->
+            <div class="profile-card rounded-2xl p-6 mt-6 shadow-lg">
+              <h3 class="text-base font-semibold profile-section-title mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2 ${colors.icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                ${t('profile-account-info')}
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="profile-info-item p-4 rounded-xl">
+                  <p class="text-xs profile-label mb-1">${t('profile-role')}</p>
+                  <p class="text-sm font-medium profile-value">${roleLabels[currentUser.role]}</p>
+                </div>
+                <div class="profile-info-item p-4 rounded-xl">
+                  <p class="text-xs profile-label mb-1">${lang === 'zh' ? '注册时间' : 'Registered'}</p>
+                  <p class="text-sm font-medium profile-value">${currentUser.createdAt ? new Date(currentUser.createdAt).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US') : '—'}</p>
+                </div>
+                <div class="profile-info-item p-4 rounded-xl">
+                  <p class="text-xs profile-label mb-1">${lang === 'zh' ? '最后登录' : 'Last Login'}</p>
+                  <p class="text-sm font-medium profile-value">${currentUser.lastLogin ? new Date(currentUser.lastLogin).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US') : '—'}</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <style>
+        /* 个人资料页面样式 - 适配深浅色模式 */
+        .profile-page { padding-bottom: 2rem; }
+        
+        .profile-card {
+          background: var(--panel, #1f232b);
+          border: 1px solid var(--border, #2a2f3b);
+        }
+        
+        .profile-title,
+        .profile-name,
+        .profile-section-title,
+        .profile-value {
+          color: var(--text, #d7dae0);
+        }
+        
+        .profile-email,
+        .profile-label,
+        .profile-stat-label,
+        .profile-hint {
+          color: var(--text-muted, #8a909f);
+        }
+        
+        .profile-input {
+          background: var(--panel-dark, #181b21);
+          border: 1px solid var(--border, #2a2f3b);
+          color: var(--text, #d7dae0);
+          transition: all 0.2s ease;
+        }
+        
+        .profile-input:focus {
+          outline: none;
+          border-color: var(--accent, #3ea7ff);
+          box-shadow: 0 0 0 3px rgba(62, 167, 255, 0.1);
+        }
+        
+        .profile-input:disabled {
+          opacity: 0.7;
+        }
+        
+        .profile-input::placeholder {
+          color: var(--text-muted, #8a909f);
+          opacity: 0.6;
+        }
+        
+        .profile-btn-secondary {
+          background: var(--panel-dark, #181b21);
+          border: 1px solid var(--border, #2a2f3b);
+          color: var(--text, #d7dae0);
+        }
+        
+        .profile-btn-secondary:hover {
+          background: var(--border, #2a2f3b);
+        }
+        
+        .profile-info-item {
+          background: var(--panel-dark, #181b21);
+          border: 1px solid var(--border, #2a2f3b);
+        }
+
+        /* 浅色模式适配 */
+        .light-theme .profile-card,
+        html[data-theme="light"] .profile-card {
+          background: #ffffff;
+          border-color: #e5e7eb;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .light-theme .profile-title,
+        .light-theme .profile-name,
+        .light-theme .profile-section-title,
+        .light-theme .profile-value,
+        html[data-theme="light"] .profile-title,
+        html[data-theme="light"] .profile-name,
+        html[data-theme="light"] .profile-section-title,
+        html[data-theme="light"] .profile-value {
+          color: #1f2937;
+        }
+        
+        .light-theme .profile-email,
+        .light-theme .profile-label,
+        .light-theme .profile-stat-label,
+        .light-theme .profile-hint,
+        html[data-theme="light"] .profile-email,
+        html[data-theme="light"] .profile-label,
+        html[data-theme="light"] .profile-stat-label,
+        html[data-theme="light"] .profile-hint {
+          color: #6b7280;
+        }
+        
+        .light-theme .profile-input,
+        html[data-theme="light"] .profile-input {
+          background: #f9fafb;
+          border-color: #e5e7eb;
+          color: #1f2937;
+        }
+        
+        .light-theme .profile-input:focus,
+        html[data-theme="light"] .profile-input:focus {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .light-theme .profile-btn-secondary,
+        html[data-theme="light"] .profile-btn-secondary {
+          background: #f3f4f6;
+          border-color: #e5e7eb;
+          color: #374151;
+        }
+        
+        .light-theme .profile-btn-secondary:hover,
+        html[data-theme="light"] .profile-btn-secondary:hover {
+          background: #e5e7eb;
+        }
+        
+        .light-theme .profile-info-item,
+        html[data-theme="light"] .profile-info-item {
+          background: #f9fafb;
+          border-color: #e5e7eb;
+        }
+
+        /* 动画 */
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-fade-in-up {
+          animation: fadeInUp 0.4s ease-out;
+        }
+      </style>
     `;
+
+    // 初始化表单事件
+    this.initProfileFormEvents(currentUser);
+  }
+
+  /**
+   * 初始化个人资料表单事件
+   */
+  initProfileFormEvents(currentUser) {
+    const form = document.getElementById('profile-form');
+    if (!form) return;
+
+    // 创建全局 profilePage 对象
+    window.profilePage = {
+      resetForm: () => {
+        document.getElementById('profile-fullname').value = currentUser.fullName || '';
+        document.getElementById('profile-email').value = currentUser.email || '';
+        document.getElementById('profile-phone').value = currentUser.phone || '';
+        
+        if (currentUser.role === 'student') {
+          document.getElementById('profile-studentId').value = currentUser.studentId || '';
+          document.getElementById('profile-grade').value = currentUser.grade || '';
+          document.getElementById('profile-department').value = currentUser.department || '';
+          document.getElementById('profile-major').value = currentUser.major || '';
+        } else if (currentUser.role === 'teacher') {
+          document.getElementById('profile-employeeId').value = currentUser.employeeId || '';
+          document.getElementById('profile-department').value = currentUser.department || '';
+        } else {
+          const deptField = document.getElementById('profile-department');
+          if (deptField) deptField.value = currentUser.department || '';
+        }
+      },
+      
+      changePassword: async () => {
+        const currentPwd = document.getElementById('currentPassword').value;
+        const newPwd = document.getElementById('newPassword').value;
+        const confirmPwd = document.getElementById('confirmPassword').value;
+        
+        const lang = window.languageManager?.getCurrentLanguage() || 'zh';
+        
+        if (!currentPwd || !newPwd || !confirmPwd) {
+          this.showMessage(lang === 'zh' ? '请填写所有密码字段' : 'Please fill in all password fields', 'warning');
+          return;
+        }
+        
+        if (newPwd !== confirmPwd) {
+          this.showMessage(lang === 'zh' ? '两次输入的新密码不一致' : 'New passwords do not match', 'error');
+          return;
+        }
+        
+        if (newPwd.length < 6) {
+          this.showMessage(lang === 'zh' ? '新密码长度至少6位' : 'New password must be at least 6 characters', 'error');
+          return;
+        }
+        
+        try {
+          await userAuth.resetPassword(currentUser.id, newPwd);
+          this.showMessage(lang === 'zh' ? '密码修改成功' : 'Password changed successfully', 'success');
+          document.getElementById('currentPassword').value = '';
+          document.getElementById('newPassword').value = '';
+          document.getElementById('confirmPassword').value = '';
+        } catch (error) {
+          this.showMessage(error.message || (lang === 'zh' ? '密码修改失败' : 'Failed to change password'), 'error');
+        }
+      }
+    };
+
+    // 表单提交
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const lang = window.languageManager?.getCurrentLanguage() || 'zh';
+      const t = (key) => window.languageManager?.t(key) || key;
+      
+      const updatedData = {
+        fullName: document.getElementById('profile-fullname').value,
+        email: document.getElementById('profile-email').value,
+        phone: document.getElementById('profile-phone').value
+      };
+      
+      if (currentUser.role === 'student') {
+        updatedData.studentId = document.getElementById('profile-studentId').value;
+        updatedData.grade = document.getElementById('profile-grade').value;
+        updatedData.department = document.getElementById('profile-department').value;
+        updatedData.major = document.getElementById('profile-major').value;
+      } else if (currentUser.role === 'teacher') {
+        updatedData.employeeId = document.getElementById('profile-employeeId').value;
+        updatedData.department = document.getElementById('profile-department').value;
+      } else {
+        const deptField = document.getElementById('profile-department');
+        if (deptField) updatedData.department = deptField.value;
+      }
+      
+      try {
+        await userAuth.updateUser(currentUser.id, updatedData);
+        this.showMessage(t('success-profile-updated'), 'success');
+        
+        // 刷新页面以显示更新后的信息
+        setTimeout(() => {
+          this.loadProfilePage();
+        }, 1000);
+      } catch (error) {
+        this.showMessage(error.message || (lang === 'zh' ? '更新失败' : 'Update failed'), 'error');
+      }
+    });
   }
 
   /**

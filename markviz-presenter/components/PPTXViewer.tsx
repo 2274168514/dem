@@ -8,6 +8,15 @@ interface PPTXViewerProps {
   name: string;
 }
 
+// 全局上传状态追踪，防止组件重渲染导致上传重启
+interface UploadState {
+  progress: number;
+  listeners: Set<(progress: number) => void>;
+  promise: Promise<string>;
+  status: 'uploading' | 'success' | 'error';
+}
+const activeUploads = new Map<string, UploadState>();
+
 export const PPTXViewer: React.FC<PPTXViewerProps> = ({ src, name }) => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -52,28 +61,84 @@ export const PPTXViewer: React.FC<PPTXViewerProps> = ({ src, name }) => {
     };
   }, []);
 
-  // 自动上传到云端
-  const autoUploadToCloud = async () => {
-    if (!isSupabaseConfigured()) {
-      return; // 未配置则跳过自动上传
+  // 启动或连接到现有的上传任务
+  const startOrJoinUpload = (blobUrl: string) => {
+    if (!isSupabaseConfigured()) return;
+
+    // 如果没有该文件的上传任务，创建一个
+    if (!activeUploads.has(blobUrl)) {
+      const listeners = new Set<(progress: number) => void>();
+      
+      const promise = (async () => {
+        try {
+          const url = await uploadLocalFileToSupabase(blobUrl, (progress) => {
+            const state = activeUploads.get(blobUrl);
+            if (state) {
+              state.progress = progress;
+              state.listeners.forEach(listener => listener(progress));
+            }
+          });
+          
+          // 上传成功
+          const state = activeUploads.get(blobUrl);
+          if (state) state.status = 'success';
+          
+          // 缓存公网URL
+          localStorage.setItem(`ppt_public_url_${blobUrl}`, url);
+          
+          // 通知编辑器更新URL
+          window.dispatchEvent(new CustomEvent('ppt-upload-success', { 
+            detail: { originalUrl: blobUrl, publicUrl: url, name: name } 
+          }));
+          
+          return url;
+        } catch (err) {
+          const state = activeUploads.get(blobUrl);
+          if (state) state.status = 'error';
+          console.error('自动上传失败:', err);
+          throw err;
+        } finally {
+          // 延迟清理，确保所有组件都收到了完成状态
+          setTimeout(() => {
+            activeUploads.delete(blobUrl);
+          }, 5000);
+        }
+      })();
+
+      activeUploads.set(blobUrl, {
+        progress: 0,
+        listeners,
+        promise,
+        status: 'uploading'
+      });
     }
 
-    try {
-      setUploading(true);
-      setUploadProgress(0);
-      const url = await uploadLocalFileToSupabase(src, (progress) => {
-        setUploadProgress(progress);
-      });
+    // 订阅进度更新
+    const uploadState = activeUploads.get(blobUrl)!;
+    
+    // 立即同步当前状态
+    setUploading(true);
+    setUploadProgress(uploadState.progress);
+    
+    const onProgress = (p: number) => {
+      setUploadProgress(p);
+    };
+    uploadState.listeners.add(onProgress);
+
+    // 等待结果
+    uploadState.promise.then((url) => {
       setPublicUrl(url);
-      // 缓存公网URL
-      localStorage.setItem(`ppt_public_url_${src}`, url);
-    } catch (err: any) {
-      console.error('自动上传失败:', err);
-      // 自动上传失败不显示错误，用户可以手动上传
-    } finally {
       setUploading(false);
       setAutoUploadDone(true);
-    }
+    }).catch(() => {
+      setUploading(false);
+      // 错误处理留给UI显示
+    });
+
+    // 清理函数
+    return () => {
+      uploadState.listeners.delete(onProgress);
+    };
   };
 
   useEffect(() => {
@@ -104,12 +169,19 @@ export const PPTXViewer: React.FC<PPTXViewerProps> = ({ src, name }) => {
           // 如果没有缓存的公网URL，自动上传到云端
           if (!cachedUrl) {
             // 延迟执行自动上传，避免阻塞UI
-            setTimeout(() => autoUploadToCloud(), 100);
+            // setTimeout(() => autoUploadToCloud(), 100);
           }
         } else {
           setFileUrl(src);
+          
+          // 如果是 blob URL 且没有缓存，也自动上传
+          if (src.startsWith('blob:') && !cachedUrl) {
+             // 使用新的共享上传机制
+             return startOrJoinUpload(src);
+          }
+
           // 如果已经是公网URL，直接使用
-          if (src.startsWith('http') && !src.includes('localhost')) {
+          if (src.startsWith('http') && !src.includes('localhost') && !src.includes('blob:')) {
             setPublicUrl(src);
             setAutoUploadDone(true);
           }
@@ -134,21 +206,30 @@ export const PPTXViewer: React.FC<PPTXViewerProps> = ({ src, name }) => {
 
   // 上传到 Supabase 获取公网地址
   const handleUploadToCloud = async () => {
+    console.log('☁️ 点击上传到云端');
     if (!isSupabaseConfigured()) {
+      console.log('⚠️ Supabase 未配置，显示配置弹窗');
       setShowConfig(true);
       return;
     }
 
     try {
+      console.log('🚀 开始执行上传流程...');
       setUploading(true);
       setUploadProgress(0);
       setError(null);
       const url = await uploadLocalFileToSupabase(src, (progress) => {
         setUploadProgress(progress);
       });
+      console.log('✅ 上传流程完成，获取到 URL:', url);
       setPublicUrl(url);
       // 缓存公网URL
       localStorage.setItem(`ppt_public_url_${src}`, url);
+
+      // 通知编辑器更新URL
+      window.dispatchEvent(new CustomEvent('ppt-upload-success', { 
+        detail: { originalUrl: src, publicUrl: url, name: name } 
+      }));
     } catch (err: any) {
       console.error('上传失败:', err);
       setError(`上传到云端失败: ${err.message}`);
