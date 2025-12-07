@@ -312,10 +312,23 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// 静态文件服务 - 放在所有路由之后
+// 特殊HTML页面路由 - 在静态文件服务之前
+app.get('/main.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'main.html'));
+});
+
+app.get('/login.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'login.html'));
+});
+
+app.get('/editor.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'editor.html'));
+});
+
+// 静态文件服务 - 处理其他所有文件
 app.use(express.static(path.join(__dirname, '..')));
 
-// 只处理根路径，其他所有文件由静态文件服务处理
+// 根路径重定向到登录页面
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'login.html'));
 });
