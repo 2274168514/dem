@@ -20,35 +20,6 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// 静态文件服务 - 增强路径处理和调试
-const staticMiddleware = express.static(path.join(__dirname, '..'), {
-  setHeaders: (res, filePath) => {
-    console.log(`📁 静态文件请求: ${filePath}`);
-
-    // 设置正确的Content-Type
-    if (filePath.endsWith('.css')) {
-      res.setHeader('Content-Type', 'text/css; charset=utf-8');
-    } else if (filePath.endsWith('.js')) {
-      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-    } else if (filePath.endsWith('.html')) {
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    } else if (filePath.endsWith('.json')) {
-      res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    }
-
-    // 设置缓存头
-    res.setHeader('Cache-Control', 'public, max-age=3600');
-
-    // 确保允许跨域访问
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  },
-  fallthrough: false // 不传递到下一个中间件
-});
-
-app.use(staticMiddleware);
-
 // 内存数据存储（模拟数据库）
 const memoryStorage = {
   users: [
@@ -426,6 +397,35 @@ app.get('/api/health', (req, res) => {
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// 静态文件服务 - 在API路由之后添加
+const staticMiddleware = express.static(path.join(__dirname, '..'), {
+  setHeaders: (res, filePath) => {
+    console.log(`📁 静态文件请求: ${filePath}`);
+
+    // 设置正确的Content-Type
+    if (filePath.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css; charset=utf-8');
+    } else if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    } else if (filePath.endsWith('.html')) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    } else if (filePath.endsWith('.json')) {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    }
+
+    // 设置缓存头
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+
+    // 确保允许跨域访问
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  },
+  fallthrough: true // 允许传递到下一个中间件
+});
+
+app.use(staticMiddleware);
 
 // 特殊HTML页面路由
 app.get('/main.html', (req, res) => {
