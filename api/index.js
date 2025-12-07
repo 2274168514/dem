@@ -411,10 +411,17 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// 静态文件服务 - 处理所有静态资源（CSS、JS、图片等）
-app.use(express.static(path.join(__dirname, '..')));
+// 静态文件服务 - 处理所有静态资源（CSS、JS、图片、markdown-viewer等）
+// 必须在所有HTML路由之前，否则会被拦截
+app.use(express.static(path.join(__dirname, '..')), {
+  // 添加日志来调试静态文件服务
+  setHeaders: (res, path, stat) => {
+    console.log('📁 静态文件访问:', path);
+    return res;
+  }
+}));
 
-// 特殊HTML页面路由 - 在静态文件服务之后，但优先于通配符
+// 特殊HTML页面路由 - 在静态文件服务之后（如果没有找到文件则使用这些路由）
 app.get('/main.html', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'main.html'));
 });
