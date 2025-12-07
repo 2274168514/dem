@@ -391,9 +391,6 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// 静态文件服务
-app.use(express.static(path.join(__dirname, '..')));
-
 // 特殊HTML页面路由
 app.get('/main.html', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'main.html'));
@@ -405,6 +402,14 @@ app.get('/login.html', (req, res) => {
 
 app.get('/editor.html', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'editor.html'));
+});
+
+app.get('/markdown-viewer', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'markdown-viewer', 'index.html'));
+});
+
+app.get('/markdown-viewer/', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'markdown-viewer', 'index.html'));
 });
 
 // 根路径重定向到登录页面
