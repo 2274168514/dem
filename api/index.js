@@ -20,9 +20,6 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// 静态文件服务
-app.use(express.static(path.join(__dirname, '..')));
-
 // 内存数据存储（模拟数据库）
 const memoryStorage = {
   users: [
@@ -121,14 +118,14 @@ app.get('/api/users/profile', (req, res) => {
 app.get('/api/courses', (req, res) => {
   res.json({
     success: true,
-    courses: memoryStorage.courses
+    data: memoryStorage.courses
   });
 });
 
 app.get('/api/assignments', (req, res) => {
   res.json({
     success: true,
-    assignments: memoryStorage.assignments
+    data: memoryStorage.assignments
   });
 });
 
@@ -335,6 +332,9 @@ app.get(/^.*\.html$/, (req, res) => {
   const filename = req.path;
   res.sendFile(path.join(__dirname, '..', filename));
 });
+
+// 静态文件服务 - 放在所有路由之后
+app.use(express.static(path.join(__dirname, '..')));
 
 // 处理其他路由 - 返回login.html
 app.get('*', (req, res) => {
