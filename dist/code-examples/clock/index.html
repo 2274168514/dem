@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时钟应用</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="clock-wrapper">
+            <!-- 模拟时钟 -->
+            <div class="analog-clock">
+                <div class="clock-face">
+                    <div class="hand hour-hand"></div>
+                    <div class="hand minute-hand"></div>
+                    <div class="hand second-hand"></div>
+                    <div class="center-dot"></div>
+
+                    <!-- 时钟刻度 -->
+                    <div class="clock-numbers">
+                        <div class="number number-12">12</div>
+                        <div class="number number-3">3</div>
+                        <div class="number number-6">6</div>
+                        <div class="number number-9">9</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数字时钟 -->
+            <div class="digital-clock">
+                <div class="time-display">
+                    <span id="hours">00</span>
+                    <span class="separator">:</span>
+                    <span id="minutes">00</span>
+                    <span class="separator">:</span>
+                    <span id="seconds">00</span>
+                </div>
+                <div class="date-display">
+                    <div id="date">2024年1月1日</div>
+                    <div id="day">星期一</div>
+                </div>
+            </div>
+
+            <!-- 控制面板 -->
+            <div class="controls">
+                <div class="control-group">
+                    <h3>时区设置</h3>
+                    <select id="timezone-select">
+                        <option value="local">本地时间</option>
+                        <option value="UTC">UTC</option>
+                        <option value="America/New_York">纽约</option>
+                        <option value="Europe/London">伦敦</option>
+                        <option value="Asia/Tokyo">东京</option>
+                        <option value="Australia/Sydney">悉尼</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <h3>显示格式</h3>
+                    <label>
+                        <input type="radio" name="format" value="12" checked> 12小时制
+                    </label>
+                    <label>
+                        <input type="radio" name="format" value="24"> 24小时制
+                    </label>
+                </div>
+
+                <div class="control-group">
+                    <h3>主题</h3>
+                    <select id="theme-select">
+                        <option value="light">浅色主题</option>
+                        <option value="dark">深色主题</option>
+                        <option value="neon">霓虹主题</option>
+                        <option value="minimal">极简主题</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <h3>闹钟设置</h3>
+                    <input type="time" id="alarm-time" />
+                    <button id="set-alarm">设置闹钟</button>
+                    <button id="cancel-alarm" disabled>取消闹钟</button>
+                </div>
+
+                <div class="control-group">
+                    <button id="toggle-sound">🔊 声音: 开启</button>
+                    <button id="fullscreen">🔳 全屏</button>
+                </div>
+            </div>
+
+            <!-- 闹钟状态 -->
+            <div id="alarm-status" class="alarm-status">
+                <span>闹钟: 未设置</span>
+            </div>
+        </div>
+
+        <!-- 秒表功能 -->
+        <div class="stopwatch-section">
+            <h2>⏱️ 秒表</h2>
+            <div class="stopwatch-display">
+                <span id="stopwatch-minutes">00</span>
+                <span class="separator">:</span>
+                <span id="stopwatch-seconds">00</span>
+                <span class="separator">.</span>
+                <span id="stopwatch-milliseconds">00</span>
+            </div>
+            <div class="stopwatch-controls">
+                <button id="stopwatch-start">开始</button>
+                <button id="stopwatch-pause" disabled>暂停</button>
+                <button id="stopwatch-reset">重置</button>
+                <button id="stopwatch-lap" disabled>计次</button>
+            </div>
+            <div id="lap-times" class="lap-times"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能记事本</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-sticky-note"></i> 智能记事本</h1>
+            <div class="header-actions">
+                <button id="search-btn" class="btn btn-search"><i class="fas fa-search"></i> 搜索</button>
+                <button id="new-note-btn" class="btn btn-primary"><i class="fas fa-plus"></i> 新建</button>
+            </div>
+        </header>
+
+        <!-- 搜索栏 -->
+        <div id="search-bar" class="search-bar hidden">
+            <input type="text" id="search-input" placeholder="搜索笔记..." />
+            <button id="close-search" class="btn btn-close"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="main-content">
+            <!-- 侧边栏 -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h3>笔记分类</h3>
+                    <button id="add-category" class="btn btn-small"><i class="fas fa-plus"></i></button>
+                </div>
+
+                <div class="categories">
+                    <div class="category active" data-category="all">
+                        <i class="fas fa-folder"></i>
+                        <span>全部笔记</span>
+                        <span class="count">0</span>
+                    </div>
+                    <div class="category" data-category="work">
+                        <i class="fas fa-briefcase"></i>
+                        <span>工作</span>
+                        <span class="count">0</span>
+                    </div>
+                    <div class="category" data-category="personal">
+                        <i class="fas fa-user"></i>
+                        <span>个人</span>
+                        <span class="count">0</span>
+                    </div>
+                    <div class="category" data-category="ideas">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>灵感</span>
+                        <span class="count">0</span>
+                    </div>
+                    <div class="category" data-category="study">
+                        <i class="fas fa-book"></i>
+                        <span>学习</span>
+                        <span class="count">0</span>
+                    </div>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-label">总笔记数:</span>
+                        <span class="stat-value" id="total-notes">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">总字数:</span>
+                        <span class="stat-value" id="total-words">0</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- 笔记列表 -->
+            <div class="notes-list">
+                <div class="notes-header">
+                    <h2>笔记列表</h2>
+                    <div class="sort-options">
+                        <select id="sort-select">
+                            <option value="date-desc">最新优先</option>
+                            <option value="date-asc">最早优先</option>
+                            <option value="title-asc">标题 A-Z</option>
+                            <option value="title-desc">标题 Z-A</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="notes-container" class="notes-container">
+                    <div class="empty-state">
+                        <i class="fas fa-sticky-note"></i>
+                        <p>还没有笔记，点击"新建"开始创作吧！</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 笔记编辑器 -->
+            <div class="note-editor" id="note-editor">
+                <div class="editor-header">
+                    <input type="text" id="note-title" placeholder="输入标题..." class="note-title-input" />
+                    <div class="editor-actions">
+                        <select id="category-select" class="category-select">
+                            <option value="work">工作</option>
+                            <option value="personal">个人</option>
+                            <option value="ideas">灵感</option>
+                            <option value="study">学习</option>
+                        </select>
+                        <button id="save-btn" class="btn btn-success"><i class="fas fa-save"></i> 保存</button>
+                        <button id="delete-btn" class="btn btn-danger"><i class="fas fa-trash"></i> 删除</button>
+                        <button id="close-editor" class="btn btn-secondary"><i class="fas fa-times"></i> 关闭</button>
+                    </div>
+                </div>
+
+                <div class="editor-toolbar">
+                    <button class="toolbar-btn" onclick="formatText('bold')">
+                        <i class="fas fa-bold"></i>
+                    </button>
+                    <button class="toolbar-btn" onclick="formatText('italic')">
+                        <i class="fas fa-italic"></i>
+                    </button>
+                    <button class="toolbar-btn" onclick="formatText('underline')">
+                        <i class="fas fa-underline"></i>
+                    </button>
+                    <div class="toolbar-separator"></div>
+                    <button class="toolbar-btn" onclick="insertList('ul')">
+                        <i class="fas fa-list-ul"></i>
+                    </button>
+                    <button class="toolbar-btn" onclick="insertList('ol')">
+                        <i class="fas fa-list-ol"></i>
+                    </button>
+                    <div class="toolbar-separator"></div>
+                    <button class="toolbar-btn" onclick="formatText('strikethrough')">
+                        <i class="fas fa-strikethrough"></i>
+                    </button>
+                    <button class="toolbar-btn" onclick="formatText('highlight')">
+                        <i class="fas fa-highlighter"></i>
+                    </button>
+                </div>
+
+                <div class="editor-content">
+                    <div id="note-content" contenteditable="true" placeholder="开始编写笔记..."></div>
+                    <div class="editor-footer">
+                        <span class="word-count">字数: <span id="word-count">0</span></span>
+                        <span class="char-count">字符数: <span id="char-count">0</span></span>
+                        <span class="save-status" id="save-status">自动保存: 开启</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

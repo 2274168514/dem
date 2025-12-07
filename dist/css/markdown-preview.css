@@ -1,0 +1,503 @@
+/**
+ * Markdown 预览样式
+ * 包含 Markdown 渲染、代码高亮、媒体查看器等样式
+ */
+
+/* ===== 基础样式 ===== */
+.markdown-preview {
+    padding: 20px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background: #fff;
+    overflow-y: auto;
+    height: 100%;
+}
+
+/* ===== Markdown 元素样式 ===== */
+.markdown-preview h1,
+.markdown-preview h2,
+.markdown-preview h3,
+.markdown-preview h4,
+.markdown-preview h5,
+.markdown-preview h6 {
+    margin-top: 24px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+    position: relative;
+}
+
+.markdown-preview h1 { font-size: 2em; border-bottom: 1px solid #e1e4e8; padding-bottom: 0.3em; }
+.markdown-preview h2 { font-size: 1.5em; border-bottom: 1px solid #e1e4e8; padding-bottom: 0.3em; }
+.markdown-preview h3 { font-size: 1.25em; }
+.markdown-preview h4 { font-size: 1em; }
+.markdown-preview h5 { font-size: 0.875em; }
+.markdown-preview h6 { font-size: 0.85em; color: #6a737d; }
+
+/* 锚点链接 */
+.anchor-link {
+    position: absolute;
+    left: -20px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    text-decoration: none;
+    color: #0366d6;
+    font-size: 0.8em;
+}
+
+.markdown-preview h1:hover .anchor-link,
+.markdown-preview h2:hover .anchor-link,
+.markdown-preview h3:hover .anchor-link,
+.markdown-preview h4:hover .anchor-link,
+.markdown-preview h5:hover .anchor-link,
+.markdown-preview h6:hover .anchor-link {
+    opacity: 1;
+}
+
+/* 段落 */
+.markdown-preview p {
+    margin-bottom: 16px;
+}
+
+/* 链接 */
+.markdown-preview a {
+    color: #0366d6;
+    text-decoration: none;
+}
+
+.markdown-preview a:hover {
+    text-decoration: underline;
+}
+
+/* 媒体链接 */
+.media-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: 2px solid;
+    border-radius: 8px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+    margin: 4px 0;
+}
+
+.media-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+}
+
+/* 列表 */
+.markdown-preview ul,
+.markdown-preview ol {
+    margin-bottom: 16px;
+    padding-left: 2em;
+}
+
+.markdown-preview li {
+    margin-bottom: 0.25em;
+}
+
+/* 任务列表 */
+.task-list-item {
+    list-style: none;
+    margin-left: -1.5em;
+}
+
+.task-list-item input[type="checkbox"] {
+    margin-right: 0.5em;
+}
+
+.task-list-item.checked {
+    text-decoration: line-through;
+    color: #6a737d;
+}
+
+/* 引用块 */
+.markdown-preview blockquote {
+    padding: 0 1em;
+    color: #6a737d;
+    border-left: 0.25em solid #dfe2e5;
+    margin-bottom: 16px;
+}
+
+.markdown-preview blockquote p {
+    margin-bottom: 0;
+}
+
+/* 代码 */
+.markdown-preview code {
+    padding: 0.2em 0.4em;
+    margin: 0;
+    font-size: 85%;
+    background-color: rgba(27, 31, 35, 0.05);
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', 'Fira Code', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+/* 代码块 */
+.code-block {
+    margin: 16px 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e1e4e8;
+    background: #f6f8fa;
+}
+
+.code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    background: #f1f3f4;
+    border-bottom: 1px solid #e1e4e8;
+    font-size: 12px;
+    color: #586069;
+}
+
+.code-language {
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.code-copy-btn {
+    padding: 4px 8px;
+    background: transparent;
+    border: 1px solid #d1d5da;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.code-copy-btn:hover {
+    background: #f3f4f6;
+}
+
+.code-block pre {
+    margin: 0;
+    padding: 16px;
+    overflow-x: auto;
+    font-size: 14px;
+    line-height: 1.45;
+    background: #fff;
+}
+
+.code-block code {
+    padding: 0;
+    background: none;
+    border-radius: 0;
+}
+
+/* ===== 代码高亮 (Prism.js) ===== */
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+    color: #6a737d;
+}
+
+.token.punctuation {
+    color: #586069;
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
+    color: #005cc5;
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+    color: #032f62;
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+    color: #d73a49;
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+    color: #6f42c1;
+}
+
+.token.function,
+.token.class-name {
+    color: #6f42c1;
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+    color: #e36209;
+}
+
+/* ===== 表格 ===== */
+.table-wrapper {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: 8px;
+    border: 1px solid #e1e4e8;
+}
+
+.markdown-preview table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.markdown-preview table th,
+.markdown-preview table td {
+    padding: 12px 16px;
+    border: 1px solid #e1e4e8;
+    text-align: left;
+}
+
+.markdown-preview table th {
+    background: #f6f8fa;
+    font-weight: 600;
+}
+
+.markdown-preview table tr:nth-child(even) {
+    background: #f6f8fa;
+}
+
+/* ===== 分隔线 ===== */
+.markdown-preview hr {
+    height: 0.25em;
+    padding: 0;
+    margin: 24px 0;
+    background-color: #e1e4e8;
+    border: 0;
+}
+
+/* ===== JavaScript 可视化容器 ===== */
+.js-viz-container {
+    margin: 16px 0;
+    border: 1px solid #e1e4e8;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.js-viz-controls {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #f6f8fa;
+    border-bottom: 1px solid #e1e4e8;
+}
+
+.btn-run-viz,
+.btn-reset-viz {
+    padding: 6px 12px;
+    border: 1px solid #d1d5da;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.btn-run-viz {
+    background: #28a745;
+    color: white;
+    border-color: #28a745;
+}
+
+.btn-run-viz:hover {
+    background: #218838;
+}
+
+.btn-run-viz:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+.btn-reset-viz:hover {
+    background: #f3f4f6;
+}
+
+.js-viz-output {
+    min-height: 200px;
+    padding: 16px;
+    background: #fff;
+}
+
+.js-viz-output .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: #6a737d;
+}
+
+.js-viz-output .placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: #6a737d;
+    font-style: italic;
+}
+
+.js-viz-output .error {
+    padding: 16px;
+    background: #ffebee;
+    border: 1px solid #f8d7da;
+    border-radius: 6px;
+    color: #721c24;
+}
+
+.js-viz-output .error pre {
+    margin-top: 8px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+}
+
+/* ===== 动画 ===== */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 768px) {
+    .markdown-preview {
+        padding: 16px;
+    }
+
+    .media-link {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+
+    .code-header {
+        padding: 6px 12px;
+    }
+
+    .code-block pre {
+        padding: 12px;
+    }
+}
+
+/* ===== 滚动条样式 ===== */
+.markdown-preview::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.markdown-preview::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.markdown-preview::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.markdown-preview::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* ===== 暗色主题支持 ===== */
+@media (prefers-color-scheme: dark) {
+    .markdown-preview {
+        background: #0d1117;
+        color: #c9d1d9;
+    }
+
+    .markdown-preview h1,
+    .markdown-preview h2 {
+        border-bottom-color: #21262d;
+    }
+
+    .markdown-preview blockquote {
+        color: #8b949e;
+        border-left-color: #30363d;
+    }
+
+    .markdown-preview code {
+        background-color: rgba(110, 118, 129, 0.4);
+    }
+
+    .code-block {
+        border-color: #30363d;
+        background: #161b22;
+    }
+
+    .code-header {
+        background: #21262d;
+        border-bottom-color: #30363d;
+        color: #8b949e;
+    }
+
+    .code-block pre {
+        background: #0d1117;
+    }
+
+    .table-wrapper {
+        border-color: #30363d;
+    }
+
+    .markdown-preview table th,
+    .markdown-preview table td {
+        border-color: #30363d;
+    }
+
+    .markdown-preview table th {
+        background: #161b22;
+    }
+
+    .markdown-preview table tr:nth-child(even) {
+        background: #0d1117;
+    }
+
+    .js-viz-container {
+        border-color: #30363d;
+        background: #0d1117;
+    }
+
+    .js-viz-controls {
+        background: #161b22;
+        border-bottom-color: #30363d;
+    }
+
+    .btn-reset-viz {
+        background: #21262d;
+        color: #c9d1d9;
+        border-color: #30363d;
+    }
+
+    .btn-reset-viz:hover {
+        background: #30363d;
+    }
+
+    .js-viz-output {
+        background: #0d1117;
+    }
+}

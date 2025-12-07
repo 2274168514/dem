@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript交互演示</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .demo-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .demo-section h2 {
+            color: #333;
+            margin-top: 0;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5a6fd8;
+        }
+
+        input, select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px;
+        }
+
+        #color-box {
+            width: 200px;
+            height: 100px;
+            background: #667eea;
+            margin: 20px 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        #todo-list li {
+            padding: 8px;
+            margin: 5px 0;
+            background: #f9f9f9;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .delete-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        #animation-area {
+            width: 300px;
+            height: 200px;
+            border: 2px solid #667eea;
+            margin: 20px 0;
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        #moving-object {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 50%;
+            position: absolute;
+            top: 75px;
+            left: 125px;
+            transition: all 0.5s ease;
+        }
+
+        .counter-display {
+            font-size: 2em;
+            text-align: center;
+            margin: 20px 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        #text-output {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            min-height: 100px;
+            border: 1px solid #e9ecef;
+        }
+
+        .highlight {
+            background: yellow;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>JavaScript交互演示</h1>
+
+    <div class="demo-section">
+        <h2>DOM操作</h2>
+        <input type="text" id="text-input" placeholder="输入文本内容">
+        <button onclick="addText()">添加文本</button>
+        <button onclick="highlightText()">高亮显示</button>
+        <button onclick="clearText()">清空</button>
+        <div id="text-output">在这里显示操作结果...</div>
+    </div>
+
+    <div class="demo-section">
+        <h2>事件处理</h2>
+        <div id="color-box" onmouseover="changeColor(this)" onmouseout="restoreColor(this)">
+            悬停改变颜色
+        </div>
+        <button onclick="animateBox()">点击动画</button>
+        <input type="color" id="color-picker" onchange="changeBoxColor(this.value)">
+        <label for="color-picker">选择颜色</label>
+    </div>
+
+    <div class="demo-section">
+        <h2>计数器应用</h2>
+        <div class="counter-display" id="counter">0</div>
+        <button onclick="increment()">增加 +1</button>
+        <button onclick="decrement()">减少 -1</button>
+        <button onclick="reset()">重置</button>
+    </div>
+
+    <div class="demo-section">
+        <h2>待办事项列表</h2>
+        <input type="text" id="todo-input" placeholder="输入待办事项" onkeypress="handleTodoKeyPress(event)">
+        <button onclick="addTodo()">添加</button>
+        <ul id="todo-list"></ul>
+        <p>总计: <span id="todo-count">0</span> 个待办事项</p>
+    </div>
+
+    <div class="demo-section">
+        <h2>动画控制</h2>
+        <div id="animation-area">
+            <div id="moving-object"></div>
+        </div>
+        <button onclick="moveObject('up')">向上</button>
+        <button onclick="moveObject('down')">向下</button>
+        <button onclick="moveObject('left')">向左</button>
+        <button onclick="moveObject('right')">向右</button>
+        <button onclick="rotateObject()">旋转</button>
+    </div>
+
+    <div class="demo-section">
+        <h2>表单验证</h2>
+        <form onsubmit="validateForm(event)">
+            <input type="email" id="email" placeholder="邮箱地址" required>
+            <input type="password" id="password" placeholder="密码 (至少6位)" minlength="6" required>
+            <select id="country" required>
+                <option value="">选择国家</option>
+                <option value="cn">中国</option>
+                <option value="us">美国</option>
+                <option value="uk">英国</option>
+            </select>
+            <button type="submit">提交表单</button>
+        </form>
+        <p id="form-message"></p>
+    </div>
+
+    <script>
+        // 全局变量
+        let counter = 0;
+        let todos = [];
+        let currentRotation = 0;
+
+        // DOM操作功能
+        function addText() {
+            const input = document.getElementById('text-input');
+            const output = document.getElementById('text-output');
+            if (input.value.trim()) {
+                output.innerHTML += `<p>${input.value}</p>`;
+                input.value = '';
+            }
+        }
+
+        function highlightText() {
+            const output = document.getElementById('text-output');
+            const paragraphs = output.getElementsByTagName('p');
+            for (let p of paragraphs) {
+                p.classList.add('highlight');
+            }
+        }
+
+        function clearText() {
+            document.getElementById('text-output').innerHTML = '内容已清空...';
+        }
+
+        // 颜色控制功能
+        function changeColor(element) {
+            element.style.background = `linear-gradient(45deg, #${Math.floor(Math.random()*16777215).toString(16)}, #${Math.floor(Math.random()*16777215).toString(16)})`;
+            element.textContent = '颜色已改变!';
+        }
+
+        function restoreColor(element) {
+            element.style.background = '#667eea';
+            element.textContent = '悬停改变颜色';
+        }
+
+        function changeBoxColor(color) {
+            document.getElementById('color-box').style.background = color;
+        }
+
+        function animateBox() {
+            const box = document.getElementById('color-box');
+            box.style.transform = 'scale(1.2) rotate(360deg)';
+            setTimeout(() => {
+                box.style.transform = 'scale(1) rotate(0deg)';
+            }, 500);
+        }
+
+        // 计数器功能
+        function increment() {
+            counter++;
+            updateCounter();
+        }
+
+        function decrement() {
+            counter--;
+            updateCounter();
+        }
+
+        function reset() {
+            counter = 0;
+            updateCounter();
+        }
+
+        function updateCounter() {
+            document.getElementById('counter').textContent = counter;
+        }
+
+        // 待办事项功能
+        function addTodo() {
+            const input = document.getElementById('todo-input');
+            if (input.value.trim()) {
+                const todo = {
+                    id: Date.now(),
+                    text: input.value.trim(),
+                    completed: false
+                };
+                todos.push(todo);
+                input.value = '';
+                renderTodos();
+            }
+        }
+
+        function handleTodoKeyPress(event) {
+            if (event.key === 'Enter') {
+                addTodo();
+            }
+        }
+
+        function deleteTodo(id) {
+            todos = todos.filter(todo => todo.id !== id);
+            renderTodos();
+        }
+
+        function toggleTodo(id) {
+            const todo = todos.find(t => t.id === id);
+            if (todo) {
+                todo.completed = !todo.completed;
+                renderTodos();
+            }
+        }
+
+        function renderTodos() {
+            const list = document.getElementById('todo-list');
+            list.innerHTML = todos.map(todo => `
+                <li style="text-decoration: ${todo.completed ? 'line-through' : 'none'}">
+                    <span onclick="toggleTodo(${todo.id})" style="cursor: pointer">${todo.text}</span>
+                    <button class="delete-btn" onclick="deleteTodo(${todo.id})">删除</button>
+                </li>
+            `).join('');
+            document.getElementById('todo-count').textContent = todos.length;
+        }
+
+        // 动画控制功能
+        function moveObject(direction) {
+            const obj = document.getElementById('moving-object');
+            const area = document.getElementById('animation-area');
+            const areaRect = area.getBoundingClientRect();
+            const objRect = obj.getBoundingClientRect();
+
+            let left = parseInt(obj.style.left) || 125;
+            let top = parseInt(obj.style.top) || 75;
+            const step = 20;
+
+            switch(direction) {
+                case 'up':
+                    top = Math.max(0, top - step);
+                    break;
+                case 'down':
+                    top = Math.min(150, top + step);
+                    break;
+                case 'left':
+                    left = Math.max(0, left - step);
+                    break;
+                case 'right':
+                    left = Math.min(250, left + step);
+                    break;
+            }
+
+            obj.style.left = left + 'px';
+            obj.style.top = top + 'px';
+        }
+
+        function rotateObject() {
+            const obj = document.getElementById('moving-object');
+            currentRotation += 45;
+            obj.style.transform = `rotate(${currentRotation}deg)`;
+        }
+
+        // 表单验证功能
+        function validateForm(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const country = document.getElementById('country').value;
+            const message = document.getElementById('form-message');
+
+            if (!email.includes('@')) {
+                message.textContent = '请输入有效的邮箱地址!';
+                message.style.color = 'red';
+                return;
+            }
+
+            if (password.length < 6) {
+                message.textContent = '密码至少需要6位字符!';
+                message.style.color = 'red';
+                return;
+            }
+
+            if (!country) {
+                message.textContent = '请选择国家!';
+                message.style.color = 'red';
+                return;
+            }
+
+            message.textContent = '表单验证通过! ✓';
+            message.style.color = 'green';
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            renderTodos();
+        });
+    </script>
+</body>
+</html>

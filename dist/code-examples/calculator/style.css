@@ -1,0 +1,143 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.calculator {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    width: 100%;
+    max-width: 350px;
+    backdrop-filter: blur(10px);
+}
+
+.display {
+    background: #333;
+    color: #fff;
+    font-size: 2.5rem;
+    text-align: right;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.btn {
+    background: #f0f0f0;
+    border: none;
+    border-radius: 15px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    padding: 25px 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #333;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn:hover {
+    background: #e0e0e0;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.number {
+    background: #fff;
+}
+
+.number:hover {
+    background: #f8f8f8;
+}
+
+.operator {
+    background: #ff9500;
+    color: white;
+}
+
+.operator:hover {
+    background: #e68500;
+}
+
+.clear {
+    background: #ff4757;
+    color: white;
+}
+
+.clear:hover {
+    background: #e63946;
+}
+
+.backspace {
+    background: #ffa502;
+    color: white;
+}
+
+.backspace:hover {
+    background: #ff9500;
+}
+
+.equals {
+    background: #00b894;
+    color: white;
+    grid-row: span 2;
+}
+
+.equals:hover {
+    background: #00a885;
+}
+
+.zero {
+    grid-column: span 2;
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+    .calculator {
+        margin: 20px;
+        padding: 20px;
+        max-width: 100%;
+    }
+
+    .display {
+        font-size: 2rem;
+        padding: 15px;
+        min-height: 70px;
+    }
+
+    .btn {
+        font-size: 1.3rem;
+        padding: 20px 0;
+    }
+
+    .buttons {
+        gap: 10px;
+    }
+}

@@ -1,0 +1,629 @@
+/* 动画效果样式文件 */
+
+/* 全局动画变量 */
+:root {
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.35s ease;
+  --transition-bounce: 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slide: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* 淡入淡出动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* 滑入动画 */
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInTop {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInBottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 缩放动画 */
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* 弹跳动画 */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* 旋转动画 */
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 脉冲动画 */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 闪烁动画 */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+/* 通用动画类 */
+.fade-in {
+  animation: fadeIn var(--transition-normal) forwards;
+}
+
+.fade-out {
+  animation: fadeOut var(--transition-normal) forwards;
+}
+
+.slide-in-left {
+  animation: slideInLeft var(--transition-slide) forwards;
+}
+
+.slide-in-right {
+  animation: slideInRight var(--transition-slide) forwards;
+}
+
+.slide-in-top {
+  animation: slideInTop var(--transition-slide) forwards;
+}
+
+.slide-in-bottom {
+  animation: slideInBottom var(--transition-slide) forwards;
+}
+
+.scale-in {
+  animation: scaleIn var(--transition-bounce) forwards;
+}
+
+.scale-out {
+  animation: scaleOut var(--transition-bounce) forwards;
+}
+
+.bounce {
+  animation: bounce var(--transition-bounce) infinite;
+}
+
+.pulse {
+  animation: pulse var(--transition-slow) infinite;
+}
+
+/* 面板切换动画 */
+.panel {
+  transition: all var(--transition-smooth);
+}
+
+.panel.hidden {
+  opacity: 0;
+  transform: translateX(-20px);
+  pointer-events: none;
+  position: absolute;
+}
+
+.panel.visible {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+  position: relative;
+}
+
+/* 侧边栏动画 */
+.sidebar {
+  transition: transform var(--transition-slide), opacity var(--transition-normal);
+}
+
+.sidebar.collapsed {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+/* 主内容区域动画 */
+.main-area {
+  transition: margin-left var(--transition-slide), transform var(--transition-smooth);
+}
+
+.main-area.expanded {
+  margin-left: 0;
+}
+
+/* 文件树动画增强 */
+.file-tree ul {
+  transition: max-height 0.3s ease, opacity 0.2s ease;
+  overflow: hidden;
+  max-height: none; /* 默认不限制高度 */
+  opacity: 1;
+}
+
+.file-tree ul.collapsed {
+  max-height: 0 !important;
+  opacity: 0;
+}
+
+.file-tree ul.expanded {
+  max-height: none !important;
+  opacity: 1;
+}
+
+.folder-arrow {
+  transition: transform 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.folder-arrow.expanded {
+  transform: rotate(90deg);
+}
+
+/* 文件项悬停动画 */
+.file, .folder-header {
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.file::before, .folder-header::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: var(--accent);
+  transform: scaleY(0);
+  transition: transform var(--transition-fast);
+}
+
+.file:hover::before, .folder-header:hover::before {
+  transform: scaleY(1);
+}
+
+/* 标签页动画增强 */
+.tab {
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--accent);
+  transition: all var(--transition-fast);
+  transform: translateX(-50%);
+}
+
+.tab.active::after {
+  width: 100%;
+}
+
+.tab:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-1px);
+}
+
+/* 标签页内容切换动画 */
+.tab-content {
+  transition: all var(--transition-smooth);
+}
+
+.tab-content.hidden {
+  opacity: 0;
+  transform: translateX(20px);
+  pointer-events: none;
+  position: absolute;
+}
+
+.tab-content.visible {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+  position: relative;
+}
+
+/* 模态框动画 */
+.modal-overlay {
+  transition: opacity var(--transition-normal);
+}
+
+.modal-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modal-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content {
+  transition: all var(--transition-bounce);
+}
+
+.modal-overlay.hidden .modal-content {
+  transform: scale(0.8) translateY(20px);
+  opacity: 0;
+}
+
+.modal-overlay.visible .modal-content {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+/* 右键菜单动画 */
+.context-menu {
+  transition: all var(--transition-bounce);
+  transform-origin: top left;
+}
+
+.context-menu.hidden {
+  opacity: 0;
+  transform: scale(0.8);
+  pointer-events: none;
+}
+
+.context-menu.visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+/* 按钮动画增强 */
+button {
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width var(--transition-normal), height var(--transition-normal);
+}
+
+button:active::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* 加载动画 */
+.loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+/* 控制台切换动画 */
+.console-container {
+  transition: all var(--transition-smooth);
+}
+
+.console-container.collapsed {
+  height: 0;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.console-container.expanded {
+  height: auto;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 预览面板动画 */
+.preview-panel {
+  transition: all var(--transition-smooth);
+}
+
+.preview-panel.hidden {
+  opacity: 0;
+  transform: scale(0.95);
+  pointer-events: none;
+}
+
+.preview-panel.visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+/* 分割线动画 */
+.resizer {
+  transition: background-color var(--transition-fast);
+}
+
+.resizer:hover {
+  background-color: var(--accent);
+}
+
+.resizer.dragging {
+  background-color: var(--accent-strong);
+}
+
+/* 面包屑导航动画 */
+.breadcrumbs {
+  transition: all var(--transition-fast);
+}
+
+.breadcrumb-item {
+  transition: color var(--transition-fast);
+}
+
+.breadcrumb-item:hover {
+  color: var(--accent);
+}
+
+/* 工具提示动画 */
+.tooltip {
+  transition: all var(--transition-fast);
+  transform-origin: center;
+}
+
+.tooltip.hidden {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.tooltip.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* 进度条动画 */
+.progress-bar {
+  transition: width var(--transition-smooth);
+}
+
+/* 开关动画 */
+.switch {
+  transition: all var(--transition-bounce);
+}
+
+.switch-slider {
+  transition: transform var(--transition-bounce);
+}
+
+/* 复选框动画 */
+.checkbox {
+  transition: all var(--transition-fast);
+}
+
+.checkbox:checked {
+  animation: pulse var(--transition-bounce);
+}
+
+/* 单选按钮动画 */
+.radio-button {
+  transition: all var(--transition-fast);
+}
+
+.radio-button:checked {
+  animation: pulse var(--transition-bounce);
+}
+
+/* 输入框焦点动画 */
+input[type="text"],
+input[type="number"],
+textarea,
+select {
+  transition: all var(--transition-fast);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(62, 167, 255, 0.2);
+}
+
+/* 卡片悬停动画 */
+.card {
+  transition: all var(--transition-fast);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* 列表项动画 */
+.list-item {
+  transition: all var(--transition-fast);
+}
+
+.list-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateX(4px);
+}
+
+/* 通知动画 */
+.notification {
+  transition: all var(--transition-slide);
+}
+
+.notification.show {
+  animation: slideInRight var(--transition-slide) forwards;
+}
+
+.notification.hide {
+  animation: slideOutRight var(--transition-slide) forwards;
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* 页面切换动画 */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: all var(--transition-smooth);
+}
+
+.page-transition-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: all var(--transition-smooth);
+}
+
+/* 滚动条样式动画 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--panel-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+  transition: background var(--transition-fast);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* 响应式动画 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片轮播器</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🖼️ 精美图片轮播器</h1>
+
+        <div class="slider-container">
+            <div class="slider-wrapper">
+                <div class="slides">
+                    <div class="slide active" data-index="0">
+                        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=600&fit=crop" alt="山脉风景">
+                        <div class="slide-caption">美丽的山脉风景</div>
+                    </div>
+                    <div class="slide" data-index="1">
+                        <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1200&h=600&fit=crop" alt="海洋日落">
+                        <div class="slide-caption">壮丽的海洋日落</div>
+                    </div>
+                    <div class="slide" data-index="2">
+                        <img src="https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=1200&h=600&fit=crop" alt="森林小径">
+                        <div class="slide-caption">宁静的森林小径</div>
+                    </div>
+                    <div class="slide" data-index="3">
+                        <img src="https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=1200&h=600&fit=crop" alt="城市夜景">
+                        <div class="slide-caption">繁华的城市夜景</div>
+                    </div>
+                    <div class="slide" data-index="4">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=600&fit=crop" alt="雪景">
+                        <div class="slide-caption">纯洁的雪景世界</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 导航按钮 -->
+            <button class="nav-btn prev-btn" onclick="slider.previousSlide()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            <button class="nav-btn next-btn" onclick="slider.nextSlide()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+
+            <!-- 指示器 -->
+            <div class="indicators">
+                <button class="indicator active" onclick="slider.goToSlide(0)"></button>
+                <button class="indicator" onclick="slider.goToSlide(1)"></button>
+                <button class="indicator" onclick="slider.goToSlide(2)"></button>
+                <button class="indicator" onclick="slider.goToSlide(3)"></button>
+                <button class="indicator" onclick="slider.goToSlide(4)"></button>
+            </div>
+
+            <!-- 控制面板 -->
+            <div class="controls">
+                <button class="control-btn" onclick="slider.toggleAutoPlay()">
+                    <span id="play-pause-icon">⏸️</span>
+                    <span id="play-pause-text">暂停</span>
+                </button>
+                <button class="control-btn" onclick="slider.toggleFullscreen()">
+                    <span>🔳</span>
+                    <span>全屏</span>
+                </button>
+                <div class="speed-control">
+                    <label>速度:</label>
+                    <input type="range" id="speed-slider" min="1" max="10" value="5" onchange="slider.setSpeed(this.value)">
+                    <span id="speed-value">5</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图片信息 -->
+        <div class="info-panel">
+            <h3>图片信息</h3>
+            <div class="image-info">
+                <p><strong>当前图片:</strong> <span id="current-title">美丽的山脉风景</span></p>
+                <p><strong>索引:</strong> <span id="current-index">1</span> / <span id="total-slides">5</span></p>
+                <p><strong>自动播放:</strong> <span id="autoplay-status">开启</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

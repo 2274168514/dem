@@ -1,0 +1,671 @@
+/* CSS变量定义 */
+:root {
+  --bg: #1a1a1a;
+  --panel: #2a2a2a;
+  --text: #e5e5e5;
+  --border: #3a3a3a;
+  --hover: #333333;
+  --selection: #404040;
+  --accent: #ef4444;
+  --purple: #8b5cf6;
+  --secondary-text: #9ca3af;
+  --header-bg: #1f2937;
+  --button-bg: #374151;
+  --button-hover: #4b5563;
+  --surface: #1f2937;
+  --surface-light: #374151;
+  --gradient-start: #667eea;
+  --gradient-end: #764ba2;
+}
+
+/* 亮色主题 */
+[data-theme="light"] {
+  --bg: #ffffff;
+  --panel: #f8fafc;
+  --text: #1e293b;
+  --border: #e2e8f0;
+  --hover: #f1f5f9;
+  --selection: #fef2f2;
+  --accent: #ef4444;
+  --purple: #8b5cf6;
+  --secondary-text: #64748b;
+  --header-bg: #ffffff;
+  --button-bg: #f1f5f9;
+  --button-hover: #e2e8f0;
+  --surface: #ffffff;
+  --surface-light: #f8fafc;
+  --gradient-start: #fbbf24;
+  --gradient-end: #f59e0b;
+}
+
+/* 全局样式重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 确保 body使用正确的背景色 */
+#main-app {
+  background: var(--bg);
+}
+
+/* 主题切换过渡 */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* 统一按钮样式 */
+button {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+button:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+/* 切换按钮样式 */
+.toolbar-btn {
+  padding: 0.5rem 1rem !important;
+  border-radius: 0.5rem !important;
+  background: var(--button-bg) !important;
+  border: 1px solid var(--border);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.toolbar-btn:hover {
+  background: var(--button-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toolbar-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* 亮色主题下的阴影 */
+[data-theme="light"] button:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--panel);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--hover);
+}
+
+/* 侧边栏样式 */
+.sidebar {
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.sidebar.hidden {
+  display: none;
+}
+
+.main-content {
+  background: var(--bg);
+  transition: all 0.3s ease;
+}
+
+.main-content.full-width {
+  margin-left: 0 !important;
+}
+
+/* 拖拽区域样式 */
+.drop-zone {
+  border: 2px dashed var(--border);
+  background: var(--surface-light);
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.drop-zone:hover {
+  border-color: var(--accent);
+  background: var(--selection);
+  transform: scale(1.02);
+}
+
+.drop-zone.dragover {
+  border-color: var(--accent);
+  background: var(--selection);
+  transform: scale(1.02);
+}
+
+/* PPT预览区域样式 */
+.ppt-viewer {
+  width: 100%;
+  height: 100%;
+  background: var(--surface);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.ppt-content {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* 文件列表项样式 */
+.file-item {
+  background: var(--surface-light);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.file-item:hover {
+  background: var(--hover);
+  transform: translateX(5px);
+}
+
+.file-item.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.file-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 1.2rem;
+}
+
+.file-icon.ppt {
+  background: #ea580c;
+  color: white;
+}
+
+.file-icon.pptx {
+  background: #ea580c;
+  color: white;
+}
+
+/* 加载动画 */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* 控制栏样式 */
+.control-bar {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1.5rem;
+  z-index: 1000;
+}
+
+[data-theme="light"] .control-bar {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.control-btn {
+  background: var(--button-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.control-btn:hover {
+  background: var(--accent);
+  color: white;
+  transform: scale(1.1);
+}
+
+.control-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.control-btn:disabled:hover {
+  transform: none;
+}
+
+.page-info {
+  color: var(--text);
+  font-size: 0.9rem;
+  min-width: 60px;
+  text-align: center;
+}
+
+/* 全屏样式 */
+.fullscreen-viewer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background: var(--surface);
+}
+
+/* 缩略图样式 */
+.thumbnail-container {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.5);
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 8px;
+  max-width: 80%;
+}
+
+[data-theme="light"] .thumbnail-container {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.thumbnail {
+  width: 80px;
+  height: 60px;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: all 0.3s;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.thumbnail:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.thumbnail.active {
+  opacity: 1;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* 加载动画 */
+.loading-spinner {
+  border: 3px solid var(--border);
+  border-top: 3px solid var(--accent);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+/* 覆盖内联样式 - 深色主题 */
+.sidebar {
+  background: var(--panel) !important;
+  border-right: 1px solid var(--border) !important;
+}
+
+.main-content {
+  background: var(--bg) !important;
+}
+
+header {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* 浅色主题覆盖 */
+[data-theme="light"] .sidebar {
+  background: var(--surface) !important;
+}
+
+[data-theme="light"] .main-content {
+  background: transparent !important;
+}
+
+[data-theme="light"] header {
+  background: var(--header-bg) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* 边框颜色覆盖 */
+.border-gray-700 {
+  border-color: var(--border) !important;
+}
+
+/* 背景颜色覆盖 */
+.bg-gray-700 {
+  background-color: var(--button-bg) !important;
+}
+
+.bg-gray-600 {
+  background-color: var(--button-hover) !important;
+}
+
+/* 文字颜色覆盖 */
+.text-white {
+  color: var(--text) !important;
+}
+
+.text-gray-400 {
+  color: var(--secondary-text) !important;
+}
+
+.text-gray-500 {
+  color: var(--secondary-text) !important;
+}
+
+.text-gray-300 {
+  color: var(--text) !important;
+}
+
+/* 快捷键提示 */
+.shortcuts-hint {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  display: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .shortcuts-hint {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.shortcuts-hint.show {
+  display: block;
+}
+
+.shortcuts-hint h4 {
+  margin-bottom: 0.5rem;
+  color: var(--secondary-text);
+}
+
+.shortcuts-hint kbd {
+  background: var(--button-bg);
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  font-family: monospace;
+  border: 1px solid var(--border);
+}
+
+/* 演讲者备注 */
+.speaker-notes {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: 300px;
+  max-height: 200px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-y: auto;
+  display: none;
+  font-size: 0.875rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .speaker-notes {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.speaker-notes.show {
+  display: block;
+}
+
+/* 自动播放进度条 */
+.autoplay-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--accent);
+  transition: width linear;
+}
+
+/* 欢迎消息样式 */
+#welcome-message {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+#welcome-message svg {
+  color: var(--secondary-text);
+}
+
+#welcome-message .bg-gray-600 {
+  background-color: var(--accent) !important;
+}
+
+#welcome-message span[class*="text-gray-"] {
+  color: var(--text) !important;
+}
+
+/* 主内容区域背景 */
+.ppt-viewer {
+  background: var(--bg) !important;
+}
+
+/* 浅色主题下的欢迎消息 */
+[data-theme="light"] #welcome-message {
+  background: var(--surface) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] #welcome-message {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+/* PPT幻灯片样式 */
+.ppt-slide {
+  max-width: 90%;
+  max-height: 90%;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  display: none;
+  position: relative;
+}
+
+.ppt-slide.active {
+  display: block;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* 浮动按钮样式 */
+#show-sidebar {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 50;
+  padding: 0.75rem;
+  background: var(--accent);
+  color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s;
+  transform: translateX(-100px);
+  opacity: 0;
+}
+
+#show-sidebar.visible {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+#show-sidebar:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    z-index: 40;
+    height: 100vh;
+  }
+
+  .sidebar.hidden {
+    transform: translateX(-100%);
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+}
+
+/* 打印样式 */
+@media print {
+  .sidebar,
+  .control-bar,
+  header,
+  .shortcuts-hint,
+  .speaker-notes,
+  .thumbnail-container {
+    display: none !important;
+  }
+
+  .main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .ppt-viewer {
+    background: white !important;
+  }
+
+  .ppt-slide {
+    box-shadow: none !important;
+    border: none !important;
+    display: block !important;
+    page-break-after: always;
+  }
+}
+
+/* 可访问性增强 */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
+  :root {
+    --border: #666666;
+    --text: #ffffff;
+    --bg: #000000;
+  }
+}

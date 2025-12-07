@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas动画演示</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .demo-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .demo-card h3 {
+            margin-top: 0;
+            color: #667eea;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        canvas {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            display: block;
+            margin: 10px auto;
+            background: white;
+        }
+
+        .controls {
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5a6fd8;
+        }
+
+        input[type="range"], input[type="color"] {
+            margin: 0 10px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .slider-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        .color-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Canvas动画演示</h1>
+
+    <div class="demo-grid">
+        <!-- 基础图形绘制 -->
+        <div class="demo-card">
+            <h3>基础图形</h3>
+            <canvas id="basic-shapes" width="350" height="250"></canvas>
+            <div class="controls">
+                <button onclick="drawShapes()">重新绘制</button>
+            </div>
+        </div>
+
+        <!-- 弹跳球动画 -->
+        <div class="demo-card">
+            <h3>弹跳球动画</h3>
+            <canvas id="bouncing-ball" width="350" height="250"></canvas>
+            <div class="controls">
+                <button onclick="toggleBouncingBall()">开始/暂停</button>
+                <div class="slider-control">
+                    <label>速度:</label>
+                    <input type="range" id="ball-speed" min="1" max="10" value="3">
+                    <span id="speed-value">3</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 粒子系统 -->
+        <div class="demo-card">
+            <h3>粒子系统</h3>
+            <canvas id="particles" width="350" height="250"></canvas>
+            <div class="controls">
+                <button onclick="resetParticles()">重置粒子</button>
+                <div class="slider-control">
+                    <label>粒子数量:</label>
+                    <input type="range" id="particle-count" min="10" max="200" value="100">
+                </div>
+            </div>
+        </div>
+
+        <!-- 时钟演示 -->
+        <div class="demo-card">
+            <h3>动态时钟</h3>
+            <canvas id="clock" width="350" height="250"></canvas>
+            <div class="controls">
+                <button onclick="toggleClock()">开始/暂停</button>
+            </div>
+        </div>
+
+        <!-- 绘图板 -->
+        <div class="demo-card">
+            <h3>交互式绘图板</h3>
+            <canvas id="drawing-board" width="350" height="250"></canvas>
+            <div class="controls">
+                <button onclick="clearCanvas()">清空画布</button>
+                <div class="color-control">
+                    <label>画笔颜色:</label>
+                    <input type="color" id="brush-color" value="#667eea">
+                </div>
+                <div class="slider-control">
+                    <label>画笔大小:</label>
+                    <input type="range" id="brush-size" min="1" max="20" value="3">
+                    <span id="brush-value">3</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 火焰效果 -->
+        <div class="demo-card">
+            <h3>火焰效果</h3>
+            <canvas id="fire-effect" width="350" height="250"></canvas>
+            <div class="controls">
+                <button onclick="toggleFire()">开始/暂停火焰</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-card full-width">
+        <h3>综合动画演示</h3>
+        <canvas id="comprehensive" width="1100" height="400"></canvas>
+        <div class="controls">
+            <button onclick="startComprehensive()">播放动画</button>
+            <button onclick="pauseComprehensive()">暂停动画</button>
+            <button onclick="resetComprehensive()">重置</button>
+        </div>
+    </div>
+
+    <script>
+        // 基础图形绘制
+        function drawShapes() {
+            const canvas = document.getElementById('basic-shapes');
+            const ctx = canvas.getContext('2d');
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 矩形
+            ctx.fillStyle = '#ff6b6b';
+            ctx.fillRect(20, 20, 80, 60);
+
+            // 圆形
+            ctx.fillStyle = '#4ecdc4';
+            ctx.beginPath();
+            ctx.arc(150, 50, 30, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 三角形
+            ctx.fillStyle = '#667eea';
+            ctx.beginPath();
+            ctx.moveTo(220, 80);
+            ctx.lineTo(270, 20);
+            ctx.lineTo(320, 80);
+            ctx.closePath();
+            ctx.fill();
+
+            // 渐变矩形
+            const gradient = ctx.createLinearGradient(20, 120, 100, 180);
+            gradient.addColorStop(0, '#ffd93d');
+            gradient.addColorStop(1, '#ff6b6b');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(20, 120, 80, 60);
+
+            // 圆弧
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(200, 150, 40, 0, Math.PI, false);
+            ctx.stroke();
+
+            // 贝塞尔曲线
+            ctx.strokeStyle = '#27ae60';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(270, 120);
+            ctx.quadraticCurveTo(300, 180, 330, 150);
+            ctx.stroke();
+
+            // 文字
+            ctx.font = 'bold 16px Arial';
+            ctx.fillStyle = '#333';
+            ctx.fillText('Canvas基础图形', 100, 220);
+        }
+
+        // 弹跳球动画
+        let bouncingBallAnimation = null;
+        let ballX = 50, ballY = 50, ballVX = 3, ballVY = 2;
+        const ballRadius = 20;
+
+        function animateBouncingBall() {
+            const canvas = document.getElementById('bouncing-ball');
+            const ctx = canvas.getContext('2d');
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制球
+            const gradient = ctx.createRadialGradient(ballX, ballY, 0, ballX, ballY, ballRadius);
+            gradient.addColorStop(0, '#ffd700');
+            gradient.addColorStop(1, '#ff8c00');
+
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 更新位置
+            const speed = parseInt(document.getElementById('ball-speed').value);
+            ballX += ballVX * speed / 3;
+            ballY += ballVY * speed / 3;
+
+            // 碰撞检测
+            if (ballX + ballRadius > canvas.width || ballX - ballRadius < 0) {
+                ballVX = -ballVX;
+            }
+            if (ballY + ballRadius > canvas.height || ballY - ballRadius < 0) {
+                ballVY = -ballVY;
+            }
+
+            if (bouncingBallAnimation) {
+                requestAnimationFrame(animateBouncingBall);
+            }
+        }
+
+        function toggleBouncingBall() {
+            if (bouncingBallAnimation) {
+                bouncingBallAnimation = null;
+            } else {
+                bouncingBallAnimation = true;
+                animateBouncingBall();
+            }
+        }
+
+        // 粒子系统
+        let particles = [];
+        let particleAnimation = null;
+
+        class Particle {
+            constructor(canvas) {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.radius = Math.random() * 3 + 1;
+                this.color = `hsl(${Math.random() * 360}, 70%, 50%)`;
+                this.canvas = canvas;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0 || this.x > this.canvas.width) this.vx = -this.vx;
+                if (this.y < 0 || this.y > this.canvas.height) this.vy = -this.vy;
+            }
+
+            draw(ctx) {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            const canvas = document.getElementById('particles');
+            const count = parseInt(document.getElementById('particle-count').value);
+            particles = [];
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(canvas));
+            }
+        }
+
+        function animateParticles() {
+            const canvas = document.getElementById('particles');
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw(ctx);
+            });
+
+            if (particleAnimation) {
+                requestAnimationFrame(animateParticles);
+            }
+        }
+
+        function resetParticles() {
+            initParticles();
+            if (!particleAnimation) {
+                particleAnimation = true;
+                animateParticles();
+            }
+        }
+
+        // 时钟
+        let clockAnimation = null;
+
+        function drawClock() {
+            const canvas = document.getElementById('clock');
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 80;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 时钟外圈
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // 时钟刻度
+            for (let i = 0; i < 12; i++) {
+                const angle = (i * Math.PI / 6) - Math.PI / 2;
+                const x1 = centerX + Math.cos(angle) * (radius - 10);
+                const y1 = centerY + Math.sin(angle) * (radius - 10);
+                const x2 = centerX + Math.cos(angle) * (radius - 5);
+                const y2 = centerY + Math.sin(angle) * (radius - 5);
+
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+            }
+
+            const now = new Date();
+            const hours = now.getHours() % 12;
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+
+            // 时针
+            const hourAngle = (hours * Math.PI / 6) + (minutes * Math.PI / 360) - Math.PI / 2;
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(
+                centerX + Math.cos(hourAngle) * (radius - 30),
+                centerY + Math.sin(hourAngle) * (radius - 30)
+            );
+            ctx.stroke();
+
+            // 分针
+            const minuteAngle = (minutes * Math.PI / 30) + (seconds * Math.PI / 1800) - Math.PI / 2;
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(
+                centerX + Math.cos(minuteAngle) * (radius - 20),
+                centerY + Math.sin(minuteAngle) * (radius - 20)
+            );
+            ctx.stroke();
+
+            // 秒针
+            const secondAngle = (seconds * Math.PI / 30) - Math.PI / 2;
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(
+                centerX + Math.cos(secondAngle) * (radius - 15),
+                centerY + Math.sin(secondAngle) * (radius - 15)
+            );
+            ctx.stroke();
+
+            // 中心点
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (clockAnimation) {
+                setTimeout(() => requestAnimationFrame(drawClock), 1000);
+            }
+        }
+
+        function toggleClock() {
+            if (clockAnimation) {
+                clockAnimation = null;
+            } else {
+                clockAnimation = true;
+                drawClock();
+            }
+        }
+
+        // 绘图板
+        let isDrawing = false;
+        let lastX = 0, lastY = 0;
+
+        function initDrawingBoard() {
+            const canvas = document.getElementById('drawing-board');
+            const ctx = canvas.getContext('2d');
+
+            canvas.addEventListener('mousedown', (e) => {
+                isDrawing = true;
+                const rect = canvas.getBoundingClientRect();
+                lastX = e.clientX - rect.left;
+                lastY = e.clientY - rect.top;
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDrawing) return;
+
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                ctx.strokeStyle = document.getElementById('brush-color').value;
+                ctx.lineWidth = document.getElementById('brush-size').value;
+                ctx.lineCap = 'round';
+
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+
+                lastX = x;
+                lastY = y;
+            });
+
+            canvas.addEventListener('mouseup', () => {
+                isDrawing = false;
+            });
+
+            canvas.addEventListener('mouseout', () => {
+                isDrawing = false;
+            });
+        }
+
+        function clearCanvas() {
+            const canvas = document.getElementById('drawing-board');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // 火焰效果
+        let fireAnimation = null;
+        let fireParticles = [];
+
+        class FireParticle {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * this.canvas.width;
+                this.y = this.canvas.height;
+                this.vy = -Math.random() * 2 - 1;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.size = Math.random() * 15 + 5;
+                this.life = 1;
+                this.decay = Math.random() * 0.01 + 0.005;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+                this.size *= 0.98;
+
+                if (this.life <= 0 || this.size < 1) {
+                    this.reset();
+                }
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = this.life;
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
+                gradient.addColorStop(0, `hsla(60, 100%, 50%, ${this.life})`);
+                gradient.addColorStop(0.5, `hsla(30, 100%, 50%, ${this.life * 0.5})`);
+                gradient.addColorStop(1, `hsla(0, 100%, 50%, 0)`);
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function initFire() {
+            const canvas = document.getElementById('fire-effect');
+            fireParticles = [];
+            for (let i = 0; i < 50; i++) {
+                fireParticles.push(new FireParticle(canvas));
+            }
+        }
+
+        function animateFire() {
+            const canvas = document.getElementById('fire-effect');
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            fireParticles.forEach(particle => {
+                particle.update();
+                particle.draw(ctx);
+            });
+
+            if (fireAnimation) {
+                requestAnimationFrame(animateFire);
+            }
+        }
+
+        function toggleFire() {
+            if (fireAnimation) {
+                fireAnimation = null;
+            } else {
+                fireAnimation = true;
+                animateFire();
+            }
+        }
+
+        // 综合动画演示
+        let comprehensiveAnimation = null;
+        let stars = [];
+
+        class Star {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.speed = Math.random() * 0.5 + 0.1;
+                this.twinkle = Math.random();
+            }
+
+            update() {
+                this.twinkle += 0.05;
+                this.x += this.speed;
+                if (this.x > this.canvas.width) {
+                    this.x = 0;
+                }
+            }
+
+            draw(ctx) {
+                ctx.fillStyle = `rgba(255, 255, 255, ${Math.sin(this.twinkle) * 0.5 + 0.5})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initComprehensive() {
+            const canvas = document.getElementById('comprehensive');
+            stars = [];
+            for (let i = 0; i < 100; i++) {
+                stars.push(new Star(canvas));
+            }
+        }
+
+        let waveOffset = 0;
+
+        function animateComprehensive() {
+            const canvas = document.getElementById('comprehensive');
+            const ctx = canvas.getContext('2d');
+
+            // 清空画布并绘制背景
+            ctx.fillStyle = '#001122';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制星星
+            stars.forEach(star => {
+                star.update();
+                star.draw(ctx);
+            });
+
+            // 绘制波浪
+            waveOffset += 0.05;
+            for (let layer = 0; layer < 3; layer++) {
+                ctx.fillStyle = `rgba(102, 126, 234, ${0.3 - layer * 0.1})`;
+                ctx.beginPath();
+                for (let x = 0; x <= canvas.width; x += 10) {
+                    const y = canvas.height / 2 + Math.sin(x * 0.01 + waveOffset + layer) * 50 * (layer + 1);
+                    if (x === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.lineTo(canvas.width, canvas.height);
+                ctx.lineTo(0, canvas.height);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            if (comprehensiveAnimation) {
+                requestAnimationFrame(animateComprehensive);
+            }
+        }
+
+        function startComprehensive() {
+            comprehensiveAnimation = true;
+            animateComprehensive();
+        }
+
+        function pauseComprehensive() {
+            comprehensiveAnimation = null;
+        }
+
+        function resetComprehensive() {
+            comprehensiveAnimation = null;
+            waveOffset = 0;
+            initComprehensive();
+            const canvas = document.getElementById('comprehensive');
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#001122';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // 初始化所有演示
+        document.addEventListener('DOMContentLoaded', function() {
+            drawShapes();
+            toggleBouncingBall();
+            resetParticles();
+            toggleClock();
+            initDrawingBoard();
+            initFire();
+            initComprehensive();
+            resetComprehensive();
+
+            // 添加事件监听器
+            document.getElementById('ball-speed').addEventListener('input', function() {
+                document.getElementById('speed-value').textContent = this.value;
+            });
+
+            document.getElementById('brush-size').addEventListener('input', function() {
+                document.getElementById('brush-value').textContent = this.value;
+            });
+
+            document.getElementById('particle-count').addEventListener('input', resetParticles);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PPT演示 - OnlineJudge 平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/main.css">
+
+  <!-- 错误处理脚本 -->
+  <script>
+    // 捕获并静默浏览器扩展错误
+    (function() {
+      const originalConsoleError = console.error;
+      const extensionErrors = [
+        'Zotero is not defined',
+        'browser is not defined',
+        'Cannot read properties of undefined',
+        'NotAllowedError: Access denied'
+      ];
+
+      console.error = function(...args) {
+        const message = args.join(' ');
+        const isExtensionError = extensionErrors.some(err => message.includes(err));
+
+        if (!isExtensionError) {
+          originalConsoleError.apply(console, args);
+        } else {
+          // 静默处理扩展错误，但记录到控制台（仅开发模式）
+          if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            console.log(`[Extension Error] ${message}`);
+          }
+        }
+      };
+
+      // 捕获未处理的Promise拒绝
+      window.addEventListener('unhandledrejection', function(event) {
+        const isExtensionError = extensionErrors.some(err =>
+          event.reason && event.reason.message && event.reason.message.includes(err)
+        );
+
+        if (!isExtensionError) {
+          console.error('Unhandled Promise Rejection:', event.reason);
+        }
+      });
+    })();
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* 浅色主题 - 优化版本 */
+    body.light-theme {
+      background: #f8fafc;
+      color: #1e293b;
+    }
+
+    body.light-theme .sidebar {
+      background: #ffffff;
+      border-right-color: #e2e8f0;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+    }
+
+    body.light-theme .main-content {
+      background: #f8fafc !important;
+    }
+
+    body.light-theme header {
+      background: #ffffff;
+      border-bottom-color: #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    body.light-theme .border-gray-700 {
+      border-color: #e2e8f0 !important;
+    }
+
+    body.light-theme .border-gray-800 {
+      border-color: #e2e8f0 !important;
+    }
+
+    body.light-theme .bg-gray-800 {
+      background-color: #ffffff !important;
+    }
+
+    body.light-theme .bg-gray-700 {
+      background-color: #f1f5f9 !important;
+    }
+
+    body.light-theme .bg-gray-600 {
+      background-color: #e2e8f0 !important;
+    }
+
+    body.light-theme .text-white {
+      color: #1e293b !important;
+    }
+
+    body.light-theme .text-gray-300 {
+      color: #475569 !important;
+    }
+
+    body.light-theme .text-gray-400 {
+      color: #64748b !important;
+    }
+
+    body.light-theme .text-gray-500 {
+      color: #64748b !important;
+    }
+
+    body.light-theme .text-gray-600 {
+      color: #475569 !important;
+    }
+
+    body.light-theme .text-gray-700 {
+      color: #334155 !important;
+    }
+
+    body.light-theme .hover\\:text-gray-300:hover {
+      color: #1e293b !important;
+    }
+
+    body.light-theme .hover\\:bg-gray-600:hover {
+      background-color: #e2e8f0 !important;
+    }
+
+    body.light-theme .hover\\:bg-gray-700:hover {
+      background-color: #f1f5f9 !important;
+    }
+
+    body.light-theme .ppt-viewer {
+      background: #ffffff !important;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    body.light-theme .ppt-content {
+      background: white;
+      border-color: #e5e7eb;
+      border-radius: 8px;
+    }
+
+    body.light-theme .viewer-content {
+      background: white !important;
+    }
+
+    body.light-theme .drop-zone {
+      border: 2px dashed #cbd5e1;
+      background: #f8fafc;
+      color: #64748b;
+    }
+
+    body.light-theme .drop-zone:hover {
+      border-color: #6366f1;
+      background: #eef2ff;
+    }
+
+    body.light-theme .file-item {
+      background: #ffffff;
+      border-color: #e2e8f0;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    body.light-theme .file-item:hover {
+      background: #f8fafc;
+      border-color: #6366f1;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+    }
+
+    body.light-theme .file-item.active {
+      background: #eef2ff;
+      border-color: #6366f1;
+      color: #4338ca;
+    }
+
+    body.light-theme .toolbar-btn {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+    }
+
+    body.light-theme .toolbar-btn:hover {
+      background: #f1f5f9;
+      color: #1e293b;
+      border-color: #cbd5e1;
+    }
+
+    body.light-theme #welcome-message {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    body.light-theme .control-bar {
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    body.light-theme .control-btn {
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    body.light-theme .control-btn:hover {
+      background: #e2e8f0;
+      color: #1e293b;
+    }
+
+    body.light-theme .shortcuts-hint {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    body.light-theme .speaker-notes {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar {
+      background: #111827;
+      border-right: 1px solid #374151;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar.hidden {
+      display: none;
+    }
+
+    .main-content {
+      background: #1f2937;
+      transition: all 0.3s ease;
+    }
+
+    .main-content.full-width {
+      margin-left: 0 !important;
+    }
+
+    /* 拖拽区域样式 */
+    .drop-zone {
+      border: 2px dashed #4b5563;
+      background: rgba(75, 85, 99, 0.1);
+      transition: all 0.3s ease;
+      border-radius: 8px;
+    }
+
+    .drop-zone:hover {
+      border-color: #10b981;
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    .drop-zone.dragover {
+      border-color: #f59e0b;
+      background: rgba(245, 158, 11, 0.2);
+      transform: scale(1.01);
+    }
+
+    /* PPT预览区域样式 */
+    .ppt-viewer {
+      width: 100%;
+      height: 100%;
+      background: #111827;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .ppt-content {
+      background: #111827;
+      border: 1px solid #374151;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    /* 工具栏按钮样式 */
+    .ppt-toolbar button {
+      transition: all 0.2s ease;
+    }
+
+    .ppt-toolbar button:hover {
+      transform: translateY(-1px);
+    }
+
+    .ppt-toolbar button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* 文件列表项样式 */
+    .file-item {
+      transition: all 0.2s ease;
+      border: 1px solid #374151;
+    }
+
+    .file-item:hover {
+      background: #374151;
+      border-color: #4b5563;
+      transform: translateX(4px);
+    }
+
+    .file-item.active {
+      background: #374151;
+      border-color: #6b7280;
+    }
+
+    /* 加载动画 */
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+
+    /* 滚动条样式 */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #1f2937;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #4b5563;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #6b7280;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        z-index: 40;
+        height: 100vh;
+      }
+
+      .sidebar.hidden {
+        transform: translateX(-100%);
+      }
+
+      .main-content {
+        margin-left: 0;
+      }
+    }
+
+    .ppt-slide {
+      max-width: 90%;
+      max-height: 90%;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      display: none;
+      position: relative;
+    }
+
+    .ppt-slide.active {
+      display: block;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    /* 控制栏样式 */
+    .control-bar {
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 50px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.5rem 1.5rem;
+      z-index: 1000;
+    }
+
+    .control-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+
+    .control-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .control-btn:disabled:hover {
+      transform: none;
+    }
+
+    .page-info {
+      color: white;
+      font-size: 0.9rem;
+      min-width: 60px;
+      text-align: center;
+    }
+
+    /* 文件列表样式 */
+    .file-item {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .file-item:hover {
+      background: var(--hover);
+      transform: translateX(5px);
+    }
+
+    .file-item.active {
+      background: #374151;
+      border-color: #6b7280;
+    }
+
+    .file-icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 1.2rem;
+    }
+
+    .file-icon.ppt {
+      background: #ea580c;
+      color: white;
+    }
+
+    .file-icon.pptx {
+      background: #ea580c;
+      color: white;
+    }
+
+    /* 全屏样式 */
+    .fullscreen-viewer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 9999;
+      background: black;
+    }
+
+    /* 缩略图样式 */
+    .thumbnail-container {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding: 0.5rem;
+      background: rgba(0, 0, 0, 0.5);
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 8px;
+      max-width: 80%;
+    }
+
+    .thumbnail {
+      width: 80px;
+      height: 60px;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: all 0.3s;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    .thumbnail:hover {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+
+    .thumbnail.active {
+      opacity: 1;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    /* 工具栏按钮样式 */
+    .toolbar-btn {
+      padding: 6px 12px;
+      background: transparent;
+      color: #999;
+      border: 1px solid #444;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .toolbar-btn:hover {
+      background: #444;
+      color: #fff;
+      border-color: #666;
+    }
+
+    .toolbar-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .toolbar-btn:disabled:hover {
+      background: transparent;
+      color: #999;
+      border-color: #444;
+    }
+
+    /* 浅色主题下的按钮样式 */
+    body.light-theme .toolbar-btn {
+      color: #666;
+      border-color: #ccc;
+    }
+
+    body.light-theme .toolbar-btn:hover {
+      background: #f0f0f0;
+      color: #333;
+      border-color: #999;
+    }
+
+    /* 加载动画 */
+    .loading-spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #6b7280;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* PPT预览工具栏样式 */
+    #ppt-toolbar {
+      background: #1f2937;
+      border-bottom: 1px solid #374151;
+    }
+
+    body.light-theme #ppt-toolbar {
+      background: #f3f4f6;
+      border-bottom-color: #e5e7eb;
+    }
+
+    body.light-theme #ppt-toolbar span {
+      color: #1f2937;
+    }
+
+    body.light-theme #iframe-wrapper {
+      background: #e5e7eb;
+    }
+
+    /* 全屏时的样式 */
+    #ppt-preview-container:fullscreen {
+      background: black;
+    }
+
+    #ppt-preview-container:fullscreen #ppt-toolbar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    #ppt-preview-container:fullscreen:hover #ppt-toolbar {
+      opacity: 1;
+    }
+
+    #ppt-preview-container:fullscreen #iframe-wrapper {
+      padding: 0;
+      height: 100vh;
+    }
+
+    #ppt-preview-container:fullscreen #iframe-wrapper > div {
+      max-width: 100%;
+      height: 100%;
+      aspect-ratio: auto;
+    }
+
+    #ppt-preview-container:fullscreen #office-iframe {
+      border-radius: 0;
+    }
+
+    /* 快捷键提示 */
+    .shortcuts-hint {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 1rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      display: none;
+    }
+
+    .shortcuts-hint.show {
+      display: block;
+    }
+
+    .shortcuts-hint h4 {
+      margin-bottom: 0.5rem;
+      color: #9ca3af;
+    }
+
+    .shortcuts-hint kbd {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.125rem 0.375rem;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+
+    /* 演讲者备注 */
+    .speaker-notes {
+      position: absolute;
+      right: 20px;
+      bottom: 20px;
+      width: 300px;
+      max-height: 200px;
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-y: auto;
+      display: none;
+      font-size: 0.875rem;
+    }
+
+    .speaker-notes.show {
+      display: block;
+    }
+
+    /* 自动播放进度条 */
+    .autoplay-progress {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: #6b7280;
+      transition: width linear;
+    }
+
+    /* 通知动画 */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -20px);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+      to {
+        opacity: 0;
+        transform: translate(-50%, -20px);
+      }
+    }
+
+    /* 右键菜单样式 */
+    .context-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 10px 16px;
+      text-align: left;
+      color: #e5e5e5;
+      font-size: 14px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.15s;
+    }
+    
+    .context-menu-item:hover {
+      background-color: #374151;
+    }
+    
+    .context-menu-item svg {
+      flex-shrink: 0;
+    }
+    
+    #ppt-context-menu {
+      animation: contextMenuFadeIn 0.15s ease-out;
+    }
+    
+    @keyframes contextMenuFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* 浅色主题下的右键菜单 */
+    body.light-theme #ppt-context-menu {
+      background: #ffffff;
+      border-color: #e5e7eb;
+    }
+
+    body.light-theme .context-menu-item {
+      color: #374151;
+    }
+
+    body.light-theme .context-menu-item:hover {
+      background-color: #f3f4f6;
+    }
+
+    body.light-theme #ppt-context-menu .border-gray-700 {
+      border-color: #e5e7eb !important;
+    }
+
+    /* 备注面板样式 */
+    #notes-panel {
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(100%);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+  <!-- 全局设置管理器 - 统一主题和语言 -->
+  <script src="../js/globalSettings.js"></script>
+</head>
+<body class="min-h-screen flex">
+  <!-- 主应用界面 -->
+  <div id="main-app" class="w-full h-screen flex">
+    <!-- 左侧边栏 -->
+    <div class="sidebar w-80 flex-shrink-0 flex flex-col">
+      <div class="p-4 border-b border-gray-700">
+        <div class="flex items-center justify-between">
+          <h1 class="text-lg font-bold text-white" data-i18n="sidebar.my-ppts">我的PPT</h1>
+          <button id="toggle-sidebar" class="p-2 text-gray-400 hover:text-white transition-colors" title="隐藏侧边栏">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 文件列表 -->
+      <div class="flex-1 overflow-y-auto p-4">
+        <div id="file-list">
+          <!-- 文件列表将在这里动态生成 -->
+        </div>
+      </div>
+
+      <!-- 文件上传区域 -->
+      <div class="p-3 border-t border-gray-700">
+        <div id="drop-zone" class="drop-zone rounded-lg p-3 text-center cursor-pointer">
+          <svg class="w-6 h-6 mx-auto mb-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+          </svg>
+          <p class="text-white text-xs font-medium" data-i18n="sidebar.upload-ppt">上传PPT</p>
+          <p class="text-gray-500 text-xs mt-1" data-i18n="sidebar.file-types">.ppt, .pptx</p>
+          <input type="file" id="file-input" class="hidden" accept=".ppt,.pptx" multiple>
+        </div>
+      </div>
+
+      <!-- 返回按钮 -->
+      <div class="p-4 border-t border-gray-700">
+        <button onclick="window.location.href='../main.html'" class="toolbar-btn w-full justify-center">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          <span data-i18n="sidebar.return-main">返回主界面</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 浮动按钮（显示侧边栏） -->
+    <button id="show-sidebar" class="fixed top-4 left-4 z-50 p-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg shadow-lg transition-all duration-300 hidden" title="显示侧边栏">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+      </svg>
+    </button>
+
+    <!-- 主内容区域 -->
+    <div class="main-content flex-1 flex flex-col">
+      <!-- 顶部工具栏 -->
+      <header class="border-b border-gray-700 px-6 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <h2 id="ppt-title" class="text-xl font-semibold text-white" data-i18n="main.select-ppt">请选择或上传PPT文件</h2>
+            <span id="ppt-info" class="text-sm text-gray-400 hidden"></span>
+          </div>
+          <div class="flex items-center space-x-4">
+            <!-- 语言切换按钮 -->
+            <button id="lang-toggle" class="toolbar-btn" data-i18n-title="toolbar.language" title="切换语言">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+              </svg>
+              <span id="lang-text">中</span>
+            </button>
+
+            <!-- 主题切换按钮 -->
+            <button id="theme-toggle" class="toolbar-btn" data-i18n-title="toolbar.theme" title="切换主题">
+              <svg id="theme-icon-light" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+              </svg>
+              <svg id="theme-icon-dark" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+              </svg>
+            </button>
+
+            <div class="w-px h-6 bg-gray-600"></div>
+
+            <button id="export-pdf-btn" class="toolbar-btn" disabled>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <span data-i18n="toolbar.export-pdf">导出PDF</span>
+            </button>
+            <button id="fullscreen-btn" class="toolbar-btn" data-i18n-title="toolbar.fullscreen" title="全屏" disabled>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+              </svg>
+              <span data-i18n="toolbar.fullscreen">全屏</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- PPT预览区域 -->
+      <div class="flex-1 p-6 overflow-hidden relative">
+        <div id="welcome-message" class="flex items-center justify-center h-full">
+          <div class="text-center">
+            <svg class="w-24 h-24 mx-auto mb-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0l1 16h8l1-16M9 9h6m-6 4h6"></path>
+            </svg>
+            <h3 class="text-xl font-medium text-white mb-2" data-i18n="welcome.title">欢迎使用PPT演示系统</h3>
+            <p class="text-gray-400 mb-4" data-i18n="welcome.description">支持在线演示PowerPoint文件</p>
+            <div class="flex justify-center space-x-4 text-sm">
+              <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 bg-gray-600 rounded-full"></span>
+                <span class="text-gray-300" data-i18n="welcome.supported-format">PowerPoint (.ppt, .pptx)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="ppt-viewer" class="ppt-viewer h-full hidden">
+          <!-- PPT内容将在这里动态加载 -->
+          <div class="loading-spinner mx-auto mt-20" id="loading-spinner"></div>
+        </div>
+
+        <!-- 缩略图容器 -->
+        <div id="thumbnail-container" class="thumbnail-container hidden"></div>
+
+        <!-- 快捷键提示 -->
+        <div id="shortcuts-hint" class="shortcuts-hint">
+          <h4 data-i18n="shortcuts.title">快捷键</h4>
+          <div class="space-y-1">
+            <div><kbd>←</kbd> <span data-i18n="shortcuts.prev-page">上一页</span></div>
+            <div><kbd>→</kbd> <span data-i18n="shortcuts.next-page">下一页</span></div>
+            <div><kbd>Home</kbd> <span data-i18n="shortcuts.first-page">第一页</span></div>
+            <div><kbd>End</kbd> <span data-i18n="shortcuts.last-page">最后一页</span></div>
+            <div><kbd>F11</kbd> <span data-i18n="shortcuts.fullscreen">全屏</span></div>
+            <div><kbd>Space</kbd> <span data-i18n="shortcuts.play-pause">播放/暂停</span></div>
+            <div><kbd>Esc</kbd> <span data-i18n="shortcuts.exit-fullscreen">退出全屏</span></div>
+          </div>
+        </div>
+
+        <!-- 演讲者备注 -->
+        <div id="speaker-notes" class="speaker-notes">
+          <h4 class="font-medium mb-2" data-i18n="speaker-notes.title">演讲者备注</h4>
+          <p id="notes-content"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 控制栏 -->
+  <div id="control-bar" class="control-bar hidden">
+    <button id="prev-btn" class="control-btn" disabled>
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+    </button>
+    <button id="play-pause-btn" class="control-btn">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+    </button>
+    <span id="page-counter" class="page-info">1 / 1</span>
+    <button id="next-btn" class="control-btn" disabled>
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- 自动播放进度条 -->
+  <div id="autoplay-progress" class="autoplay-progress" style="width: 0%"></div>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- PPT本地预览库 - 多重备选CDN -->
+  <script>
+    // Supabase 配置 - 与 markviz-presenter 保持一致
+    const SUPABASE_URL = localStorage.getItem('SUPABASE_URL') || 'https://gjoymdzbiiijeregqemj.supabase.co';
+    const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdqb3ltZHpiaWlpamVyZWdxZW1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQzMDA0NjYsImV4cCI6MjA3OTg3NjQ2Nn0.0HeF8MF0B7hlNaePJ7BFGm0BtDvwn3YnBSzQAEMokQM';
+    const SUPABASE_BUCKET = 'code';
+
+    // 初始化 Supabase 客户端
+    window.supabaseClient = null;
+    if (typeof supabase !== 'undefined') {
+      window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      console.log('[PPTViewer] Supabase 客户端初始化成功');
+    }
+
+    // 动态加载库的函数
+    function loadScript(src, fallbackSrcs, callback, errorCb) {
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = () => {
+        console.log(`${src} 加载成功`);
+        callback();
+      };
+      script.onerror = () => {
+        console.warn(`${src} 加载失败，尝试备选CDN`);
+        if (fallbackSrcs.length > 0) {
+          loadScript(fallbackSrcs[0], fallbackSrcs.slice(1), callback, errorCb);
+        } else {
+          console.error(`所有CDN都加载失败: ${src}`);
+          errorCb();
+        }
+      };
+      document.head.appendChild(script);
+    }
+
+    // 加载所有必需的库
+    function loadAllLibraries() {
+      const libraries = [
+        {
+          name: 'JSZip',
+          primary: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
+          fallbacks: [
+            'https://unpkg.com/jszip@3.10.1/dist/jszip.min.js',
+            'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js',
+            'https://gitcdn.xyz/repo/Stuk/jszip/master/dist/jszip.min.js'
+          ]
+        },
+            {
+          name: 'Fabric.js',
+          primary: 'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js',
+          fallbacks: [
+            'https://unpkg.com/fabric@5.3.0/dist/fabric.min.js',
+            'https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js'
+          ]
+        }
+      ];
+
+      let loadedCount = 0;
+      const totalLibraries = libraries.length;
+
+      libraries.forEach(lib => {
+        loadScript(lib.primary, lib.fallbacks, () => {
+          loadedCount++;
+          if (loadedCount === totalLibraries) {
+            console.log('所有PPT库加载完成');
+            // 触发自定义事件通知库已加载完成
+            window.pptLibrariesLoaded = true;
+            document.dispatchEvent(new CustomEvent('pptLibrariesReady'));
+          }
+        }, () => {
+          console.error(`${lib.name} 加载完全失败`);
+          loadedCount++;
+          if (loadedCount === totalLibraries) {
+            console.log('库加载完成（部分失败）');
+            window.pptLibrariesLoaded = false;
+            document.dispatchEvent(new CustomEvent('pptLibrariesReady'));
+          }
+        });
+      });
+    }
+
+    // 开始加载库
+    loadAllLibraries();
+  </script>
+
+  <!-- JavaScript模块 -->
+  <script src="js/main.js"></script>
+</body>
+</html>
