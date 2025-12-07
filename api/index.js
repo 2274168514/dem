@@ -68,15 +68,21 @@ const memoryStorage = {
 
 // API路由
 app.post('/api/users/login', (req, res) => {
+  console.log('🔐 登录请求收到:', req.body);
   try {
     const { username, password } = req.body;
 
+    console.log('🔍 查找用户:', username);
+
     const user = memoryStorage.users.find(u => u.username === username);
     if (!user || user.password !== password) {
+      console.log('❌ 登录失败: 用户不存在或密码错误');
       return res.status(401).json({ error: '用户名或密码错误' });
     }
 
-    res.json({
+    console.log('✅ 登录成功:', user.username, user.role);
+
+    const loginResponse = {
       success: true,
       message: '登录成功',
       user: {
@@ -86,8 +92,12 @@ app.post('/api/users/login', (req, res) => {
         email: user.email
       },
       token: 'mock-token-' + Date.now()
-    });
+    };
+
+    console.log('📤 返回登录响应:', loginResponse);
+    res.json(loginResponse);
   } catch (error) {
+    console.error('❌ 登录API错误:', error);
     res.status(500).json({ error: '服务器错误' });
   }
 });
