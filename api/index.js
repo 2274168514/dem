@@ -20,6 +20,9 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// 静态文件服务
+app.use(express.static(path.join(__dirname, '..')));
+
 // 内存数据存储（模拟数据库）
 const memoryStorage = {
   users: [
@@ -95,24 +98,40 @@ app.post('/api/users/register', (req, res) => {
     res.status(201).json({
       success: true,
       message: '注册成功',
-      user: { id: newUser.id, username: newUser.username, email: newUser.email, role: newUser.role, full_name: newUser.full_name }
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role
+      }
     });
   } catch (error) {
-    res.status(500).json({ error: '服务器错误' });
+    res.status(500).json({ error: '注册失败' });
   }
 });
 
 app.get('/api/users/profile', (req, res) => {
-  res.json({
-    success: true,
-    user: {
-      id: 1,
-      username: 'student1',
-      email: 'student@example.com',
-      role: 'student',
-      created_at: new Date().toISOString()
+  try {
+    const { userId } = req.query;
+
+    const user = memoryStorage.users.find(u => u.id == userId);
+    if (!user) {
+      return res.status(404).json({ error: '用户不存在' });
     }
-  });
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        full_name: user.full_name
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: '获取用户信息失败' });
+  }
 });
 
 app.get('/api/courses', (req, res) => {
@@ -214,7 +233,6 @@ app.post('/api/assignments/:id/submissions', (req, res) => {
       feedback: null
     };
 
-    // 这里应该保存到数据库，但为了演示我们返回成功
     res.json({
       success: true,
       message: '作业提交成功',
@@ -231,59 +249,60 @@ app.post('/api/assignments/:id/submissions', (req, res) => {
 // 通知相关API
 app.get('/api/notifications', (req, res) => {
   try {
-    const { recipientId, limit = 10, offset = 0 } = req.query;
-
+    const { recipientId } = req.query;
     let notifications = memoryStorage.notifications;
 
     if (recipientId) {
       notifications = notifications.filter(n => n.recipient_id == recipientId);
     }
 
-    // 按创建时间倒序排列
-    notifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-    // 分页
-    const paginatedNotifications = notifications.slice(parseInt(offset), parseInt(offset) + parseInt(limit));
-
     res.json({
       success: true,
-      data: paginatedNotifications,
-      total: notifications.length,
-      unread: notifications.filter(n => !n.is_read).length
+      data: notifications
     });
   } catch (error) {
-    console.error('获取通知失败:', error);
-    res.status(500).json({ error: '服务器错误' });
+    res.status(500).json({ error: '获取通知失败' });
   }
 });
 
+// 创建通知的辅助函数
+function createNotification(type, recipientId, data) {
+  const notification = {
+    id: Date.now(),
+    type,
+    recipient_id: recipientId,
+    message: getNotificationMessage(type, data),
+    created_at: new Date().toISOString(),
+    read: false,
+    ...data
+  };
+
+  memoryStorage.notifications.push(notification);
+}
+
+function getNotificationMessage(type, data) {
+  const messages = {
+    'user_registration': `新用户 ${data.username} 注册成功`,
+    'assignment_graded': `作业 ${data.assignmentTitle} 已评分`,
+    'course_enrollment': `用户 ${data.username} 加入了课程`,
+    'new_assignment': `新作业 ${data.title} 已发布`
+  };
+  return messages[type] || '您有一条新通知';
+}
+
+// 通知操作API
 app.post('/api/notifications', (req, res) => {
   try {
-    const {
-      type,
-      recipient_id,
-      title,
-      message,
-      sender_id = null,
-      related_id = null,
-      related_type = null,
-      priority = 'normal'
-    } = req.body;
+    const { type, recipientId, message, data = {} } = req.body;
 
     const notification = {
       id: Date.now(),
       type,
-      recipient_id,
-      title,
-      message,
-      sender_id,
-      related_id,
-      related_type,
-      priority,
-      is_read: false,
-      read_at: null,
+      recipient_id: recipientId,
+      message: message || getNotificationMessage(type, data),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      read: false,
+      ...data
     };
 
     memoryStorage.notifications.push(notification);
@@ -294,109 +313,71 @@ app.post('/api/notifications', (req, res) => {
       data: notification
     });
   } catch (error) {
-    console.error('创建通知失败:', error);
-    res.status(500).json({ error: '服务器错误' });
+    res.status(500).json({ error: '创建通知失败' });
   }
 });
 
 app.put('/api/notifications/:id/read', (req, res) => {
   try {
-    const { id } = req.params;
-    const notification = memoryStorage.notifications.find(n => n.id == id);
+    const notificationId = parseInt(req.params.id);
+    const notification = memoryStorage.notifications.find(n => n.id === notificationId);
 
     if (!notification) {
       return res.status(404).json({ error: '通知不存在' });
     }
 
-    notification.is_read = true;
-    notification.read_at = new Date().toISOString();
-    notification.updated_at = new Date().toISOString();
-
+    notification.read = true;
     res.json({
       success: true,
-      message: '标记已读成功',
-      data: notification
+      message: '通知已读'
     });
   } catch (error) {
-    console.error('标记已读失败:', error);
-    res.status(500).json({ error: '服务器错误' });
+    res.status(500).json({ error: '标记已读失败' });
   }
 });
 
 app.put('/api/notifications/mark-all-read', (req, res) => {
   try {
     const { recipientId } = req.body;
+    const count = memoryStorage.notifications.filter(n => !n.read && (!recipientId || n.recipient_id == recipientId)).length;
 
-    if (!recipientId) {
-      return res.status(400).json({ error: '缺少接收者ID' });
-    }
-
-    const userNotifications = memoryStorage.notifications.filter(n => n.recipient_id == recipientId);
-    userNotifications.forEach(notification => {
-      notification.is_read = true;
-      notification.read_at = new Date().toISOString();
-      notification.updated_at = new Date().toISOString();
+    memoryStorage.notifications.forEach(n => {
+      if (!n.read && (!recipientId || n.recipient_id == recipientId)) {
+        n.read = true;
+      }
     });
 
     res.json({
       success: true,
-      message: `已标记 ${userNotifications.length} 条通知为已读`,
-      count: userNotifications.length
+      message: `已标记 ${count} 条通知为已读`
     });
   } catch (error) {
-    console.error('标记全部已读失败:', error);
-    res.status(500).json({ error: '服务器错误' });
+    res.status(500).json({ error: '批量标记已读失败' });
   }
 });
 
-// 自动创建通知的辅助函数
-function createNotification(type, recipientId, data) {
-  const notification = {
-    id: Date.now(),
-    type,
-    recipient_id: recipientId,
-    title: data.title || getDefaultTitle(type, data),
-    message: data.message || getDefaultMessage(type, data),
-    sender_id: data.senderId || null,
-    related_id: data.relatedId || null,
-    related_type: data.relatedType || null,
-    priority: data.priority || 'normal',
-    is_read: false,
-    read_at: null,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
+app.delete('/api/notifications/clear-all', (req, res) => {
+  try {
+    const { recipientId } = req.query;
 
-  memoryStorage.notifications.push(notification);
-  return notification;
-}
+    const originalLength = memoryStorage.notifications.length;
 
-// 获取默认通知标题
-function getDefaultTitle(type, data) {
-  const titles = {
-    'user_registration': '新用户注册',
-    'course_assignment': '课程分配通知',
-    'assignment_submission': '作业提交通知',
-    'grade_assigned': '作业评分通知',
-    'course_enrollment': '课程报名通知',
-    'system_announcement': '系统公告'
-  };
-  return titles[type] || '通知';
-}
+    if (recipientId) {
+      memoryStorage.notifications = memoryStorage.notifications.filter(n => n.recipient_id != recipientId);
+    } else {
+      memoryStorage.notifications = [];
+    }
 
-// 获取默认通知消息
-function getDefaultMessage(type, data) {
-  const messages = {
-    'user_registration': `用户 ${data.username || data.full_name || '新用户'} 已注册为${data.role || '用户'}`,
-    'course_assignment': `您已被分配到课程：${data.courseName || '未知课程'}`,
-    'assignment_submission': `学生 ${data.studentName || '未知学生'} 提交了作业：${data.assignmentTitle || '未知作业'}`,
-    'grade_assigned': `您的作业 "${data.assignmentTitle || '未知作业'}" 已评分，得分：${data.grade || '未评分'}`,
-    'course_enrollment': `学生 ${data.studentName || '未知学生'} 报名了您的课程：${data.courseName || '未知课程'}`,
-    'system_announcement': data.message || '系统公告'
-  };
-  return messages[type] || '您有一条新通知';
-}
+    res.json({
+      success: true,
+      message: `已清理 ${originalLength - memoryStorage.notifications.length} 条通知`
+    });
+  } catch (error) {
+    res.status(500).json({ error: '清理通知失败' });
+  }
+});
 
+// 健康检查
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -406,22 +387,14 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 健康检查
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// 静态文件服务 - 处理所有静态资源（CSS、JS、图片、markdown-viewer等）
-// 必须在所有HTML路由之前，否则会被拦截
-app.use(express.static(path.join(__dirname, '..')), {
-  // 添加日志来调试静态文件服务
-  setHeaders: (res, path, stat) => {
-    console.log('📁 静态文件访问:', path);
-    return res;
-  }
-}));
+// 静态文件服务
+app.use(express.static(path.join(__dirname, '..')));
 
-// 特殊HTML页面路由 - 在静态文件服务之后（如果没有找到文件则使用这些路由）
+// 特殊HTML页面路由
 app.get('/main.html', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'main.html'));
 });
@@ -460,5 +433,3 @@ app.use((err, req, res, next) => {
 
 // 导出给Vercel使用
 module.exports = app;
-
-console.log('✅ API服务器配置完成');
