@@ -20,29 +20,34 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// 静态文件服务 - 设置正确的MIME类型和缓存头
-app.use(express.static(path.join(__dirname, '..'), {
+// 静态文件服务 - 增强路径处理和调试
+const staticMiddleware = express.static(path.join(__dirname, '..'), {
   setHeaders: (res, filePath) => {
+    console.log(`📁 静态文件请求: ${filePath}`);
+
     // 设置正确的Content-Type
     if (filePath.endsWith('.css')) {
-      res.setHeader('Content-Type', 'text/css');
+      res.setHeader('Content-Type', 'text/css; charset=utf-8');
     } else if (filePath.endsWith('.js')) {
-      res.setHeader('Content-Type', 'application/javascript');
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
     } else if (filePath.endsWith('.html')) {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
     } else if (filePath.endsWith('.json')) {
-      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
     }
 
     // 设置缓存头
     res.setHeader('Cache-Control', 'public, max-age=3600');
 
-    // 允许跨域访问
+    // 确保允许跨域访问
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  }
-}));
+  },
+  fallthrough: false // 不传递到下一个中间件
+});
+
+app.use(staticMiddleware);
 
 // 内存数据存储（模拟数据库）
 const memoryStorage = {
