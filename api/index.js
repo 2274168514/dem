@@ -312,32 +312,11 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// 主页路由 - 重定向到登录页面
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'login.html'));
-});
-
-// 主应用页面路由
-app.get('/main.html', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'main.html'));
-});
-
-// 登录页面路由
-app.get('/login.html', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'login.html'));
-});
-
-// 处理其他HTML文件路由
-app.get(/^.*\.html$/, (req, res) => {
-  const filename = req.path;
-  res.sendFile(path.join(__dirname, '..', filename));
-});
-
 // 静态文件服务 - 放在所有路由之后
 app.use(express.static(path.join(__dirname, '..')));
 
-// 处理其他路由 - 返回login.html
-app.get('*', (req, res) => {
+// 只处理根路径，其他所有文件由静态文件服务处理
+app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'login.html'));
 });
 
