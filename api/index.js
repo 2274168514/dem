@@ -315,14 +315,14 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// 主页路由
+// 主页路由 - 重定向到登录页面
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'main.html'));
+  res.sendFile(path.join(__dirname, '..', 'login.html'));
 });
 
-// 处理其他路由 - 返回index.html（SPA支持）
+// 处理其他路由 - 返回login.html
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'index.html'));
+  res.sendFile(path.join(__dirname, '..', 'login.html'));
 });
 
 // 404处理
