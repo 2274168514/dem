@@ -1436,14 +1436,17 @@
     // ========== 端口配置 ==========
     const API_PORT = 5024;
     const FRONTEND_PORT = 5020;
-    const API_BASE = `http://localhost:${API_PORT}/api`;
+    // 动态检测API基础URL
+    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? `http://localhost:${API_PORT}/api`
+        : '/api';
 
     // 创建一个代理fetch函数，自动替换硬编码的端口
     const originalFetch = window.fetch;
     window.fetch = function(url, options) {
       // 如果URL包含硬编码的API端口，自动替换为配置的端口
       if (typeof url === 'string') {
-        url = url.replace(/http:\/\/localhost:50\d{2}\/api/g, API_BASE);
+        url = url.replace(/https?:\/\/(localhost|127\.0\.0\.1):50\d{2}\/api/g, API_BASE);
       }
       return originalFetch.call(this, url, options);
     };

@@ -12,11 +12,14 @@ export class DatabaseManager {
         // 自动检测API服务器地址
         const currentPort = window.location.port;
         const hostname = window.location.hostname;
-        
+
         // 前端开发端口列表
         const frontendPorts = [String(DEFAULT_FRONTEND_PORT), '5021', '3000', '8080', '8000', ''];
-        
-        if (frontendPorts.includes(currentPort) && (hostname === 'localhost' || hostname === '127.0.0.1')) {
+
+        if (hostname.includes('vercel.app') || hostname.includes('vercel')) {
+            // Vercel部署环境
+            this.apiBase = '/api';
+        } else if (frontendPorts.includes(currentPort) && (hostname === 'localhost' || hostname === '127.0.0.1')) {
             // 前端端口或直接打开文件，API服务器在默认端口
             this.apiBase = `http://localhost:${DEFAULT_API_PORT}/api`;
         } else if (currentPort === String(DEFAULT_API_PORT)) {

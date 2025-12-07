@@ -60,6 +60,11 @@ function t(key, params = {}) {
     return translation;
 }
 
+// 动态检测API基础URL
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:5024/api'
+  : '/api';
+
 export class NotificationManager {
     constructor() {
         this.currentNotifications = [];
@@ -295,7 +300,7 @@ export class NotificationManager {
             }
 
             // 从API获取通知
-            const response = await fetch(`http://localhost:5024/api/notifications?recipientId=${currentUser.id}`);
+            const response = await fetch(`${API_BASE}/notifications?recipientId=${currentUser.id}`);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -434,7 +439,7 @@ export class NotificationManager {
             console.log('📖 标记已读:', notificationId);
             
             // 调用 API 持久化已读状态
-            const response = await fetch(`http://localhost:5024/api/notifications/${notificationId}/read`, {
+            const response = await fetch(`${API_BASE}/notifications/${notificationId}/read`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -480,7 +485,7 @@ export class NotificationManager {
             }
 
             // 调用 API 持久化已读状态
-            const response = await fetch('http://localhost:5024/api/notifications/mark-all-read', {
+            const response = await fetch(`${API_BASE}/notifications/mark-all-read`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -787,7 +792,7 @@ export class NotificationManager {
             }
 
             // 调用API清空所有通知
-            const response = await fetch(`http://localhost:5024/api/notifications/clear-all?recipientId=${currentUser.id}`, {
+            const response = await fetch(`${API_BASE}/notifications/clear-all?recipientId=${currentUser.id}`, {
                 method: 'DELETE'
             });
 

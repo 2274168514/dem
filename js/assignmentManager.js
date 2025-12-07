@@ -11,6 +11,11 @@
 import { USER_ROLES } from './userAuth.js';
 import { db } from './database.js';
 
+// 动态检测API基础URL
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://127.0.0.1:5024/api'
+  : '/api';
+
 export class AssignmentManager {
   constructor() {
     this.assignments = [];
@@ -26,7 +31,7 @@ export class AssignmentManager {
     try {
       console.log('🔄 开始从API同步作业数据...');
       // 尝试从API获取作业列表
-      const response = await fetch('http://127.0.0.1:5024/api/assignments');
+      const response = await fetch(`${API_BASE}/assignments`);
       if (response.ok) {
         const result = await response.json();
         if (result.success && Array.isArray(result.data)) {
@@ -35,7 +40,7 @@ export class AssignmentManager {
            // 并行获取所有作业的提交记录
            await Promise.all(apiAssignments.map(async (assignment) => {
              try {
-               const subRes = await fetch(`http://127.0.0.1:5024/api/assignments/${assignment.id}/submissions`);
+               const subRes = await fetch(`${API_BASE}/assignments/${assignment.id}/submissions`);
                if (subRes.ok) {
                  const subResult = await subRes.json();
                  if (subResult.success && subResult.data && subResult.data.submissions) {

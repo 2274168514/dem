@@ -935,7 +935,10 @@
          * 用户认证系统 (Inlined for file:// access)
          */
         const API_PORT = 5024;
-        const API_BASE = `http://127.0.0.1:${API_PORT}/api`;
+        // 动态检测API基础URL
+        const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? `http://127.0.0.1:${API_PORT}/api`
+            : '/api';
 
         const USER_ROLES = {
             ADMIN: 'admin',
@@ -1464,7 +1467,7 @@
             }
 
             try {
-                const response = await fetch('http://127.0.0.1:5024/api/public/register', {
+                const response = await fetch(`${API_BASE}/users/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(userData)
