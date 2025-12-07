@@ -129,6 +129,105 @@ app.get('/api/assignments', (req, res) => {
   });
 });
 
+// 用户相关API
+app.get('/api/users', (req, res) => {
+  const { role } = req.query;
+  let users = memoryStorage.users;
+
+  if (role) {
+    users = users.filter(user => user.role === role);
+  }
+
+  res.json({
+    success: true,
+    data: users
+  });
+});
+
+// 课程相关API
+app.post('/api/courses', (req, res) => {
+  try {
+    const { title, description, teacher_id } = req.body;
+    const newCourse = {
+      id: Date.now(),
+      title,
+      description,
+      teacher_id: teacher_id || 1,
+      created_at: new Date().toISOString()
+    };
+
+    memoryStorage.courses.push(newCourse);
+
+    res.json({
+      success: true,
+      message: '课程创建成功',
+      data: newCourse
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: '创建课程失败'
+    });
+  }
+});
+
+// 课程注册API
+app.post('/api/courses/:id/enroll', (req, res) => {
+  try {
+    const courseId = parseInt(req.params.id);
+    const { user_id } = req.body;
+
+    const course = memoryStorage.courses.find(c => c.id === courseId);
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        error: '课程不存在'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: '注册课程成功'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: '注册课程失败'
+    });
+  }
+});
+
+// 作业提交API
+app.post('/api/assignments/:id/submissions', (req, res) => {
+  try {
+    const assignmentId = parseInt(req.params.id);
+    const { student_id, code_content, language } = req.body;
+
+    const submission = {
+      id: Date.now(),
+      assignment_id: assignmentId,
+      student_id,
+      code_content,
+      language,
+      submitted_at: new Date().toISOString(),
+      grade: null,
+      feedback: null
+    };
+
+    // 这里应该保存到数据库，但为了演示我们返回成功
+    res.json({
+      success: true,
+      message: '作业提交成功',
+      data: submission
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: '提交作业失败'
+    });
+  }
+});
+
 // 通知相关API
 app.get('/api/notifications', (req, res) => {
   try {
@@ -312,7 +411,10 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// 特殊HTML页面路由 - 在静态文件服务之前
+// 静态文件服务 - 处理所有静态资源（CSS、JS、图片等）
+app.use(express.static(path.join(__dirname, '..')));
+
+// 特殊HTML页面路由 - 在静态文件服务之后，但优先于通配符
 app.get('/main.html', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'main.html'));
 });
@@ -324,9 +426,6 @@ app.get('/login.html', (req, res) => {
 app.get('/editor.html', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'editor.html'));
 });
-
-// 静态文件服务 - 处理其他所有文件
-app.use(express.static(path.join(__dirname, '..')));
 
 // 根路径重定向到登录页面
 app.get('/', (req, res) => {
