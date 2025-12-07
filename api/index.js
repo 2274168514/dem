@@ -320,6 +320,22 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'login.html'));
 });
 
+// 主应用页面路由
+app.get('/main.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'main.html'));
+});
+
+// 登录页面路由
+app.get('/login.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'login.html'));
+});
+
+// 处理其他HTML文件路由
+app.get(/^.*\.html$/, (req, res) => {
+  const filename = req.path;
+  res.sendFile(path.join(__dirname, '..', filename));
+});
+
 // 处理其他路由 - 返回login.html
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'login.html'));
